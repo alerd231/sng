@@ -6,11 +6,11 @@
     "title": "ГРС Арск, Урняк",
     "shortTitle": "Шеф-монтаж, ПНР, автоматизация",
     "excerpt": "Комплекс работ по шеф-монтажу, пусконаладке и автоматизации на действующих ГРС с передачей полного комплекта исполнительной документации.",
-    "heroImage": "/images/project-arsk.svg",
+    "heroImage": "/images/object-grs.png",
     "gallery": [
-      "/images/project-arsk.svg",
-      "/images/project-control.svg",
-      "/images/project-station.svg"
+      "/images/object-grs.png",
+      "/images/object-grs.png",
+      "/images/object-grs.png"
     ],
     "region": "Республика Татарстан",
     "objectType": "ГРС",
@@ -63,11 +63,11 @@
     "title": "ГРС н.п. Павлово (Альметьевское ЛПУ)",
     "shortTitle": "Шеф-монтаж, ПНР и автоматизация",
     "excerpt": "Работы на объекте Альметьевского ЛПУ с комплексной подготовкой к вводу в эксплуатацию и интеграцией в существующую систему управления.",
-    "heroImage": "/images/project-pavlovo.svg",
+    "heroImage": "/images/object-grs.png",
     "gallery": [
-      "/images/project-pavlovo.svg",
-      "/images/project-panel.svg",
-      "/images/project-station.svg"
+      "/images/object-grs.png",
+      "/images/object-grs.png",
+      "/images/object-grs.png"
     ],
     "region": "Республика Татарстан",
     "objectType": "ГРС",
@@ -114,11 +114,11 @@
     "title": "Дооснащение ИТСО ГРС Чебоксарского ЛПУ МГ",
     "shortTitle": "Б. Сундырь / Б. Атмени / Завод Промтракторов",
     "excerpt": "Дооснащение объектов инженерно-техническими средствами охраны с поэтапным вводом и тестированием сценариев безопасности.",
-    "heroImage": "/images/project-security.svg",
+    "heroImage": "/images/object-grs.png",
     "gallery": [
-      "/images/project-security.svg",
-      "/images/project-control.svg",
-      "/images/project-panel.svg"
+      "/images/object-grs.png",
+      "/images/object-grs.png",
+      "/images/object-grs.png"
     ],
     "region": "Чувашская Республика",
     "objectType": "ИТСО",
@@ -165,11 +165,11 @@
     "title": "Автодорога М-7 \"Волга\", км 1070+100 - 1102+200",
     "shortTitle": "Части 1/2/6, ПНР и автоматизация",
     "excerpt": "Пусконаладочные и автоматизационные работы на объекте дорожной инфраструктуры с высокими требованиями к надежности и срокам.",
-    "heroImage": "/images/project-m7.svg",
+    "heroImage": "/images/object-grs.png",
     "gallery": [
-      "/images/project-m7.svg",
-      "/images/project-control.svg",
-      "/images/project-panel.svg"
+      "/images/object-grs.png",
+      "/images/object-grs.png",
+      "/images/object-grs.png"
     ],
     "region": "Республика Татарстан",
     "objectType": "Автодорога",
@@ -216,11 +216,11 @@
     "title": "Автодорога М-7 \"Волга\", комплексная автоматизация",
     "shortTitle": "Части 1/2/6, интеграционный контур",
     "excerpt": "Комплексная автоматизация инженерной инфраструктуры с централизованным мониторингом, отчетностью и эксплуатационной документацией.",
-    "heroImage": "/images/project-automation.svg",
+    "heroImage": "/images/object-grs.png",
     "gallery": [
-      "/images/project-automation.svg",
-      "/images/project-control.svg",
-      "/images/project-m7.svg"
+      "/images/object-grs.png",
+      "/images/object-grs.png",
+      "/images/object-grs.png"
     ],
     "region": "Республика Татарстан",
     "objectType": "Автодорога",
@@ -261,3 +261,4 @@
     "relatedCompetencyIds": ["comp-automation", "comp-construction"]
   }
 ]
+

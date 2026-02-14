@@ -1,4 +1,5 @@
-﻿import { type FormEvent, useMemo, useState } from 'react'
+﻿import { motion, useReducedMotion, useScroll, useTransform, type Variants } from 'framer-motion'
+import { type FormEvent, useMemo, useRef, useState } from 'react'
 import { Navigate, useParams } from 'react-router-dom'
 import { Container } from '../components/layout/Container'
 import { Section } from '../components/layout/Section'
@@ -41,6 +42,53 @@ const initialFormState: ApplyFormState = {
   consent: false,
 }
 
+const staggerContainer: Variants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.04,
+    },
+  },
+}
+
+const cardReveal: Variants = {
+  hidden: {
+    opacity: 0,
+    y: 18,
+    scale: 0.99,
+    filter: 'blur(6px)',
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    filter: 'blur(0px)',
+    transition: {
+      duration: 0.62,
+      ease: [0.22, 1, 0.36, 1],
+    },
+  },
+}
+
+const workflowReveal: Variants = {
+  hidden: {
+    opacity: 0,
+    x: -14,
+    filter: 'blur(4px)',
+  },
+  visible: (index: number = 0) => ({
+    opacity: 1,
+    x: 0,
+    filter: 'blur(0px)',
+    transition: {
+      duration: 0.54,
+      delay: index * 0.07,
+      ease: [0.22, 1, 0.36, 1],
+    },
+  }),
+}
+
 export const CareerDetailPage = () => {
   const { slug } = useParams()
   const vacancy = vacancies.find((item) => item.slug === slug)
@@ -50,6 +98,21 @@ export const CareerDetailPage = () => {
   const [submitting, setSubmitting] = useState(false)
   const [submitState, setSubmitState] = useState<'idle' | 'success' | 'error'>('idle')
   const [submitMessage, setSubmitMessage] = useState('')
+
+  const reducedMotion = useReducedMotion()
+  const heroRef = useRef<HTMLElement | null>(null)
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ['start start', 'end start'],
+  })
+  const heroImageScale = useTransform(scrollYProgress, [0, 1], [1, 1.08])
+  const heroImageY = useTransform(scrollYProgress, [0, 1], [0, 64])
+  const heroOverlayOpacity = useTransform(scrollYProgress, [0, 1], [0.9, 1])
+  const heroAccentY = useTransform(scrollYProgress, [0, 1], [0, -24])
+
+  const heroImageStyle = reducedMotion ? undefined : { scale: heroImageScale, y: heroImageY }
+  const heroOverlayStyle = reducedMotion ? undefined : { opacity: heroOverlayOpacity }
+  const heroAccentStyle = reducedMotion ? undefined : { y: heroAccentY }
 
   const accordionItems = useMemo(() => {
     if (!vacancy) {
@@ -172,18 +235,50 @@ export const CareerDetailPage = () => {
         canonicalPath={`/careers/${vacancy.slug}`}
       />
 
-      <section className="relative overflow-hidden border-b border-white/15 bg-frame py-10 text-white sm:py-12 lg:py-16">
-        <img
-          src="/images/object-grs.svg"
+      <section
+        ref={heroRef}
+        className="relative overflow-hidden border-b border-white/15 bg-frame py-10 text-white sm:py-12 lg:py-16"
+      >
+        <motion.img
+          src="/images/object-grs.png"
           alt={vacancy.title}
           className="absolute inset-0 h-full w-full object-cover opacity-28"
+          style={heroImageStyle}
           loading="eager"
           fetchPriority="high"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-graphite/94 via-graphite/86 to-graphite/78" />
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-r from-graphite/94 via-graphite/86 to-graphite/78"
+          style={heroOverlayStyle}
+        />
+        <motion.div
+          className="pointer-events-none absolute -left-[18%] top-0 h-full w-[60%] bg-[radial-gradient(circle_at_50%_40%,rgba(184,29,39,0.22),transparent_66%)]"
+          style={heroAccentStyle}
+          animate={
+            reducedMotion
+              ? undefined
+              : {
+                  opacity: [0.28, 0.5, 0.28],
+                  scale: [1, 1.06, 1],
+                }
+          }
+          transition={{ duration: 7.4, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.div
+          className="pointer-events-none absolute inset-y-0 -left-1/3 w-[45%] bg-gradient-to-r from-transparent via-white/8 to-transparent"
+          animate={
+            reducedMotion
+              ? undefined
+              : {
+                  x: ['0%', '230%'],
+                  opacity: [0, 0.55, 0],
+                }
+          }
+          transition={{ duration: 2.8, repeat: Infinity, repeatDelay: 1.2, ease: 'easeInOut' }}
+        />
 
         <Container className="relative z-10">
-          <Reveal>
+          <Reveal duration={0.74} distance={24} amount={0.15}>
             <Breadcrumbs
               dark
               items={[
@@ -207,40 +302,75 @@ export const CareerDetailPage = () => {
         index="01"
         title="Описание роли"
         description="Подробный профиль вакансии и формат проектной работы."
+        desktopSplit={false}
       >
-        <div className="grid gap-4 lg:grid-cols-12">
-          <Card className="lg:col-span-7">
-            <div className="space-y-4 text-sm leading-relaxed text-muted">
-              {roleDescription.map((paragraph) => (
-                <p key={paragraph}>{paragraph}</p>
-              ))}
-            </div>
-          </Card>
+        <motion.div
+          className="grid gap-4 lg:grid-cols-2"
+          variants={staggerContainer}
+          initial={reducedMotion ? undefined : 'hidden'}
+          whileInView={reducedMotion ? undefined : 'visible'}
+          viewport={{ once: true, amount: 0.16 }}
+        >
+          <motion.div variants={cardReveal} whileHover={reducedMotion ? undefined : { y: -4 }}>
+            <Card>
+              <div className="space-y-4 text-sm leading-relaxed text-muted">
+                {roleDescription.map((paragraph) => (
+                  <p key={paragraph}>{paragraph}</p>
+                ))}
+              </div>
+            </Card>
+          </motion.div>
 
-          <Card className="lg:col-span-5">
-            <p className="caption text-muted">Проектный контур</p>
-            <div className="mt-4 grid gap-3">
-              {workflow.map((item) => (
-                <div key={item.stage} className="border border-ink/12 p-4">
-                  <p className="caption text-accent">{item.stage}</p>
-                  <h3 className="mt-2 text-sm font-semibold uppercase tracking-[0.12em] text-ink">
-                    {item.title}
-                  </h3>
-                  <p className="mt-2 text-sm leading-relaxed text-muted">{item.text}</p>
-                </div>
-              ))}
-            </div>
-          </Card>
-        </div>
+          <motion.div variants={cardReveal} whileHover={reducedMotion ? undefined : { y: -4 }}>
+            <Card>
+              <p className="caption text-muted">Проектный контур</p>
+              <div className="mt-4 grid gap-3">
+                {workflow.map((item, index) => (
+                  <motion.div
+                    key={item.stage}
+                    className="border border-ink/12 p-4"
+                    custom={index}
+                    variants={workflowReveal}
+                    initial={reducedMotion ? false : 'hidden'}
+                    whileInView={reducedMotion ? undefined : 'visible'}
+                    viewport={{ once: true, amount: 0.45 }}
+                    whileHover={
+                      reducedMotion
+                        ? undefined
+                        : {
+                            y: -4,
+                            borderColor: 'rgba(184,29,39,0.35)',
+                            boxShadow: '0 10px 24px rgba(18,19,22,0.1)',
+                          }
+                    }
+                  >
+                    <p className="caption text-accent">{item.stage}</p>
+                    <h3 className="mt-2 text-sm font-semibold uppercase tracking-[0.12em] text-ink">
+                      {item.title}
+                    </h3>
+                    <p className="mt-2 text-sm leading-relaxed text-muted">{item.text}</p>
+                  </motion.div>
+                ))}
+              </div>
+            </Card>
+          </motion.div>
+        </motion.div>
       </Section>
 
       <Section
         index="02"
         title="Параметры вакансии"
         description="Сводные условия и формат участия в проектной команде."
+        desktopSplit={false}
       >
-        <div className="grid gap-4 lg:grid-cols-12">
-          <div className="space-y-4 lg:col-span-8">
+        <motion.div
+          className="grid gap-4 lg:grid-cols-2"
+          variants={staggerContainer}
+          initial={reducedMotion ? undefined : 'hidden'}
+          whileInView={reducedMotion ? undefined : 'visible'}
+          viewport={{ once: true, amount: 0.16 }}
+        >
+          <motion.div className="space-y-4" variants={cardReveal}>
             <Card>
               <div className="grid gap-3 border-b border-ink/10 pb-4 text-sm sm:grid-cols-2">
                 <div>
@@ -275,21 +405,32 @@ export const CareerDetailPage = () => {
                 <p className="caption text-muted">Ключевые слова</p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {vacancy.keywords.map((keyword) => (
-                    <span
+                    <motion.span
                       key={keyword}
+                      whileHover={
+                        reducedMotion
+                          ? undefined
+                          : {
+                              y: -2,
+                              borderColor: 'rgba(184,29,39,0.45)',
+                              backgroundColor: 'rgba(184,29,39,0.06)',
+                            }
+                      }
                       className="border border-ink/20 px-3 py-1 text-[0.6rem] uppercase tracking-[0.16em] text-ink sm:text-[0.62rem]"
                     >
                       {keyword}
-                    </span>
+                    </motion.span>
                   ))}
                 </div>
               </div>
             </Card>
 
-            <Accordion items={accordionItems} />
-          </div>
+            <motion.div variants={cardReveal} whileHover={reducedMotion ? undefined : { y: -4 }}>
+              <Accordion items={accordionItems} />
+            </motion.div>
+          </motion.div>
 
-          <div className="lg:col-span-4">
+          <motion.div variants={cardReveal} whileHover={reducedMotion ? undefined : { y: -4 }}>
             <Card className="lg:sticky lg:top-24">
               <p className="caption text-muted">Отклик</p>
               <h2 className="mt-3 text-xl font-semibold leading-tight text-ink">
@@ -303,8 +444,8 @@ export const CareerDetailPage = () => {
                 Откликнуться
               </Button>
             </Card>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </Section>
 
       <Modal
@@ -443,4 +584,3 @@ export const CareerDetailPage = () => {
     </>
   )
 }
-

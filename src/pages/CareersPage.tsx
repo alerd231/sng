@@ -130,7 +130,7 @@ export const CareersPage = () => {
 
       <section className="relative overflow-hidden border-b border-white/15 bg-frame py-10 text-white sm:py-12 lg:py-16">
         <img
-          src="/images/object-grs.svg"
+          src="/images/object-grs.png"
           alt="Промышленный объект компании"
           className="absolute inset-0 h-full w-full object-cover opacity-35"
           loading="eager"
@@ -334,3 +334,4 @@ export const CareersPage = () => {
     </>
   )
 }
+

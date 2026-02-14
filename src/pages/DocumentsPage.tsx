@@ -50,7 +50,7 @@ export const DocumentsPage = () => {
 
       <section className="relative overflow-hidden border-b border-white/15 bg-frame py-10 text-white sm:py-12 lg:py-16">
         <img
-          src="/images/object-itso.svg"
+          src="/images/object-grs.png"
           alt="Промышленный объект с инженерными системами"
           className="absolute inset-0 h-full w-full object-cover opacity-35"
           loading="eager"
@@ -80,14 +80,14 @@ export const DocumentsPage = () => {
           <Reveal>
             <div className="mb-7 grid gap-3 md:mb-8 md:grid-cols-2">
               <img
-                src="/images/object-grs.svg"
+                src="/images/object-grs.png"
                 alt="Газораспределительный объект"
                 className="h-32 w-full border border-ink/15 object-cover sm:h-40"
                 loading="lazy"
                 decoding="async"
               />
               <img
-                src="/images/object-itso.svg"
+                src="/images/object-grs.png"
                 alt="Объект систем безопасности"
                 className="h-32 w-full border border-ink/15 object-cover sm:h-40"
                 loading="lazy"
@@ -163,3 +163,4 @@ export const DocumentsPage = () => {
     </>
   )
 }
+

@@ -18,7 +18,7 @@ const slides: HeroSlide[] = [
     title: 'Строительно-монтажные работы',
     subtitle: 'на объектах газораспределительной инфраструктуры',
     note: 'Полный цикл работ с техническим контролем и исполнительной документацией.',
-    image: '/images/object-grs.svg',
+    image: '/images/object-grs.png',
     metrics: ['ГРС', 'Шеф-монтаж', 'Технологические узлы'],
   },
   {
@@ -26,7 +26,7 @@ const slides: HeroSlide[] = [
     title: 'Пусконаладка и ввод',
     subtitle: 'инженерных контуров в эксплуатацию',
     note: 'Пошаговые программы ПНР, протоколирование и подтверждение проектных параметров.',
-    image: '/images/object-road.svg',
+    image: '/images/object-grs.png',
     metrics: ['ПНР', 'Акты и протоколы', 'Сдача по графику'],
   },
   {
@@ -34,7 +34,7 @@ const slides: HeroSlide[] = [
     title: 'Автоматизация АСУ ТП / КИПиА',
     subtitle: 'и интеграция ТСО, ИТСО, диспетчерских систем',
     note: 'Единая архитектура управления, мониторинга и эксплуатационной отчетности.',
-    image: '/images/object-itso.svg',
+    image: '/images/object-grs.png',
     metrics: ['АСУ ТП', 'КИПиА', 'ТСО/ИТСО'],
   },
 ]
@@ -188,3 +188,4 @@ export const MainHeroSlider = () => {
     </section>
   )
 }
+

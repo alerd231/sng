@@ -70,7 +70,7 @@ export const ContactsPage = () => (
 
         <Card className="p-0">
           <img
-            src="/images/project-station.svg"
+            src="/images/object-grs.png"
             alt="Локация офиса"
             className="h-full min-h-[280px] w-full object-cover"
             loading="lazy"
@@ -100,3 +100,4 @@ export const ContactsPage = () => (
     </Section>
   </>
 )
+

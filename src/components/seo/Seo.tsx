@@ -1,4 +1,4 @@
-﻿import { Helmet } from '@dr.pogodin/react-helmet'
+﻿import { Helmet } from 'react-helmet-async'
 
 interface SeoProps {
   title: string

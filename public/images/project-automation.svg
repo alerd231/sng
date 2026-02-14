@@ -1,0 +1,26 @@
+﻿<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1600" y2="900" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2c333d"/>
+      <stop offset="1" stop-color="#101419"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="500" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#B81D27"/>
+      <stop offset="1" stop-color="#6A121A"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <rect x="110" y="120" width="1380" height="660" stroke="rgba(255,255,255,0.2)"/>
+  <rect x="130" y="140" width="540" height="4" fill="url(#accent)"/>
+  <line x1="130" y1="210" x2="1470" y2="210" stroke="rgba(255,255,255,0.18)"/>
+  <line x1="130" y1="690" x2="1470" y2="690" stroke="rgba(255,255,255,0.14)"/>
+  <g opacity="0.35">
+    <rect x="780" y="260" width="560" height="280" stroke="rgba(255,255,255,0.25)"/>
+    <line x1="780" y1="330" x2="1340" y2="330" stroke="rgba(255,255,255,0.15)"/>
+    <line x1="780" y1="400" x2="1340" y2="400" stroke="rgba(255,255,255,0.15)"/>
+    <line x1="780" y1="470" x2="1340" y2="470" stroke="rgba(255,255,255,0.15)"/>
+  </g>
+  <text x="130" y="360" fill="white" font-family="Sora, Arial, sans-serif" font-size="62" font-weight="650" letter-spacing="1">Комплексная автоматизация</text>
+  <text x="130" y="420" fill="rgba(255,255,255,0.72)" font-family="IBM Plex Mono, monospace" font-size="28" letter-spacing="2.5">М-7 Волга</text>
+  <text x="130" y="738" fill="rgba(255,255,255,0.56)" font-family="IBM Plex Mono, monospace" font-size="18" letter-spacing="3">STROINEFTEGAZ / INDUSTRIAL PROFILE</text>
+</svg>

@@ -1,0 +1,92 @@
+﻿[
+  {
+    "id": "doc-charter",
+    "title": "Устав ООО \"СтройНефтеГаз\"",
+    "date": "2024-02-12",
+    "type": "PDF",
+    "size": "1.3 МБ",
+    "category": "Учредительные",
+    "url": "/documents/ustav.pdf"
+  },
+  {
+    "id": "doc-egrul",
+    "title": "Выписка из ЕГРЮЛ",
+    "date": "2025-11-05",
+    "type": "PDF",
+    "size": "0.8 МБ",
+    "category": "Учредительные",
+    "url": "/documents/egrul.pdf"
+  },
+  {
+    "id": "doc-sro",
+    "title": "Свидетельство СРО на строительно-монтажные работы",
+    "date": "2025-04-18",
+    "type": "PDF",
+    "size": "1.1 МБ",
+    "category": "СРО и лицензии",
+    "url": "/documents/sro-construction.pdf"
+  },
+  {
+    "id": "doc-license-itso",
+    "title": "Лицензия на монтаж и обслуживание ТСО/ИТСО",
+    "date": "2025-01-26",
+    "type": "PDF",
+    "size": "0.9 МБ",
+    "category": "СРО и лицензии",
+    "url": "/documents/license-itso.pdf"
+  },
+  {
+    "id": "doc-policy-quality",
+    "title": "Политика в области качества",
+    "date": "2024-10-09",
+    "type": "PDF",
+    "size": "0.7 МБ",
+    "category": "Политики и регламенты",
+    "url": "/documents/policy-quality.pdf"
+  },
+  {
+    "id": "doc-policy-safety",
+    "title": "Политика промышленной безопасности",
+    "date": "2024-12-03",
+    "type": "PDF",
+    "size": "0.6 МБ",
+    "category": "Политики и регламенты",
+    "url": "/documents/policy-safety.pdf"
+  },
+  {
+    "id": "doc-cert-iso",
+    "title": "Сертификат соответствия ISO 9001",
+    "date": "2025-06-21",
+    "type": "PDF",
+    "size": "0.5 МБ",
+    "category": "Сертификаты",
+    "url": "/documents/iso9001.pdf"
+  },
+  {
+    "id": "doc-cert-occupational",
+    "title": "Сертификат системы охраны труда",
+    "date": "2025-07-11",
+    "type": "PDF",
+    "size": "0.5 МБ",
+    "category": "Сертификаты",
+    "url": "/documents/osh-certificate.pdf"
+  },
+  {
+    "id": "doc-profile",
+    "title": "Профиль компании для закупочных процедур",
+    "date": "2025-09-14",
+    "type": "PDF",
+    "size": "4.0 МБ",
+    "category": "Презентационные материалы",
+    "url": "/documents/company-profile.pdf"
+  },
+  {
+    "id": "doc-reference-list",
+    "title": "Реестр исполненных проектов 2023-2024",
+    "date": "2025-10-20",
+    "type": "XLSX",
+    "size": "1.8 МБ",
+    "category": "Презентационные материалы",
+    "url": "/documents/reference-list.xlsx"
+  }
+]

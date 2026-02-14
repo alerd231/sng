@@ -1,6 +1,6 @@
 ﻿import { StrictMode, useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
-import { HelmetProvider } from 'react-helmet-async'
+import { HelmetProvider } from '@dr.pogodin/react-helmet'
 import { RouterProvider } from 'react-router-dom'
 import { router } from './app/router'
 import { IntroPreloader } from './components/layout/IntroPreloader'

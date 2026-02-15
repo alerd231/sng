@@ -1,7 +1,9 @@
-﻿import { StrictMode, useEffect, useState } from 'react'
+﻿/* eslint-disable react-refresh/only-export-components */
+import { StrictMode, useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { HelmetProvider } from 'react-helmet-async'
 import { RouterProvider } from 'react-router-dom'
+import { AdminAuthProvider } from './admin/AdminAuthProvider'
 import { router } from './app/router'
 import { IntroPreloader } from './components/layout/IntroPreloader'
 import './index.css'
@@ -45,7 +47,9 @@ const RootApp = () => {
   return (
     <>
       <HelmetProvider>
-        <RouterProvider router={router} />
+        <AdminAuthProvider>
+          <RouterProvider router={router} />
+        </AdminAuthProvider>
       </HelmetProvider>
       <IntroPreloader open={introOpen} />
     </>

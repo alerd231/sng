@@ -1,9 +1,9 @@
-﻿[
+[
   {
     "id": "proj-arsk-urnyak-2023",
     "slug": "grs-arsk-urnyak-2023",
     "year": 2023,
-    "title": "ГРС Арск, Урняк",
+    "title": "ГРС Арск, Урняк Г",
     "shortTitle": "Шеф-монтаж, ПНР, автоматизация",
     "excerpt": "Комплекс работ по шеф-монтажу, пусконаладке и автоматизации на действующих ГРС с передачей полного комплекта исполнительной документации.",
     "heroImage": "/images/object-grs.png",
@@ -14,7 +14,11 @@
     ],
     "region": "Республика Татарстан",
     "objectType": "ГРС",
-    "workTypes": ["Шеф-монтаж", "ПНР", "Автоматизация"],
+    "workTypes": [
+      "Шеф-монтаж",
+      "ПНР",
+      "Автоматизация"
+    ],
     "passport": {
       "period": "2023",
       "status": "Завершен",
@@ -54,7 +58,11 @@
         "url": "/documents/asu-schema.pdf"
       }
     ],
-    "relatedCompetencyIds": ["comp-supervision", "comp-commissioning", "comp-automation"]
+    "relatedCompetencyIds": [
+      "comp-supervision",
+      "comp-commissioning",
+      "comp-automation"
+    ]
   },
   {
     "id": "proj-pavlovo-2023",
@@ -71,7 +79,11 @@
     ],
     "region": "Республика Татарстан",
     "objectType": "ГРС",
-    "workTypes": ["Шеф-монтаж", "ПНР", "Автоматизация"],
+    "workTypes": [
+      "Шеф-монтаж",
+      "ПНР",
+      "Автоматизация"
+    ],
     "passport": {
       "period": "2023",
       "status": "Завершен",
@@ -105,7 +117,11 @@
         "url": "/documents/test-program.pdf"
       }
     ],
-    "relatedCompetencyIds": ["comp-supervision", "comp-commissioning", "comp-automation"]
+    "relatedCompetencyIds": [
+      "comp-supervision",
+      "comp-commissioning",
+      "comp-automation"
+    ]
   },
   {
     "id": "proj-itso-cheboksary-2024",
@@ -122,7 +138,10 @@
     ],
     "region": "Чувашская Республика",
     "objectType": "ИТСО",
-    "workTypes": ["ТСО", "ИТСО"],
+    "workTypes": [
+      "ТСО",
+      "ИТСО"
+    ],
     "passport": {
       "period": "2024",
       "status": "Завершен",
@@ -156,7 +175,10 @@
         "url": "/documents/itso-tests.pdf"
       }
     ],
-    "relatedCompetencyIds": ["comp-security", "comp-commissioning"]
+    "relatedCompetencyIds": [
+      "comp-security",
+      "comp-commissioning"
+    ]
   },
   {
     "id": "proj-m7-pnr-2024",
@@ -173,7 +195,10 @@
     ],
     "region": "Республика Татарстан",
     "objectType": "Автодорога",
-    "workTypes": ["ПНР", "Автоматизация"],
+    "workTypes": [
+      "ПНР",
+      "Автоматизация"
+    ],
     "passport": {
       "period": "2024",
       "status": "Завершен",
@@ -207,7 +232,10 @@
         "url": "/documents/m7-pnr-report.pdf"
       }
     ],
-    "relatedCompetencyIds": ["comp-commissioning", "comp-automation"]
+    "relatedCompetencyIds": [
+      "comp-commissioning",
+      "comp-automation"
+    ]
   },
   {
     "id": "proj-m7-automation-2024",
@@ -224,7 +252,9 @@
     ],
     "region": "Республика Татарстан",
     "objectType": "Автодорога",
-    "workTypes": ["Комплексная автоматизация"],
+    "workTypes": [
+      "Комплексная автоматизация"
+    ],
     "passport": {
       "period": "2024",
       "status": "Завершен",
@@ -258,7 +288,9 @@
         "url": "/documents/m7-regulation.pdf"
       }
     ],
-    "relatedCompetencyIds": ["comp-automation", "comp-construction"]
+    "relatedCompetencyIds": [
+      "comp-automation",
+      "comp-construction"
+    ]
   }
 ]
-

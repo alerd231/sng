@@ -1,5 +1,6 @@
 ﻿import { lazy, Suspense, type ReactNode } from 'react'
 import { createBrowserRouter } from 'react-router-dom'
+import { AdminRoute } from '../admin/AdminRoute'
 import { AppShell } from '../components/layout/AppShell'
 import { PageLoader } from '../components/layout/PageLoader'
 
@@ -15,6 +16,8 @@ const ContactsPage = lazy(async () => ({ default: (await import('../pages/Contac
 const PolicyPage = lazy(async () => ({ default: (await import('../pages/PolicyPage')).PolicyPage }))
 const ConsentPage = lazy(async () => ({ default: (await import('../pages/ConsentPage')).ConsentPage }))
 const NotFoundPage = lazy(async () => ({ default: (await import('../pages/NotFoundPage')).NotFoundPage }))
+const AdminLoginPage = lazy(async () => ({ default: (await import('../pages/admin/AdminLoginPage')).AdminLoginPage }))
+const AdminDashboardPage = lazy(async () => ({ default: (await import('../pages/admin/AdminDashboardPage')).AdminDashboardPage }))
 
 const withLoader = (element: ReactNode) => (
   <Suspense fallback={<PageLoader />}>
@@ -23,6 +26,18 @@ const withLoader = (element: ReactNode) => (
 )
 
 export const router = createBrowserRouter([
+  {
+    path: '/admin/login',
+    element: withLoader(<AdminLoginPage />),
+  },
+  {
+    path: '/admin',
+    element: withLoader(
+      <AdminRoute>
+        <AdminDashboardPage />
+      </AdminRoute>,
+    ),
+  },
   {
     path: '/',
     element: <AppShell />,

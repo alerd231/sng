@@ -1,3 +1,11 @@
+<<<<<<< HEAD
 {
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }
+=======
+{
+  "rewrites": [
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ]
+}
+>>>>>>> c19da4d (Add Vercel rewrite for SPA routes)

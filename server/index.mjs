@@ -26,6 +26,11 @@ const env = {
   secureCookie: process.env.NODE_ENV === 'production',
 }
 
+const allowedOrigins = env.allowedOrigin
+  .split(',')
+  .map((item) => item.trim())
+  .filter(Boolean)
+
 if (!Number.isFinite(env.port) || env.port <= 0) {
   throw new Error('ADMIN_API_PORT должен быть положительным числом')
 }
@@ -175,8 +180,16 @@ const readJsonArray = async (filePath, label) => {
 const writeJsonArray = async (filePath, value) => {
   const tempPath = `${filePath}.tmp-${Date.now()}-${Math.floor(Math.random() * 100000)}`
   const payload = `${JSON.stringify(value, null, 2)}\n`
-  await writeFile(tempPath, payload, 'utf8')
-  await rename(tempPath, filePath)
+  try {
+    await writeFile(tempPath, payload, 'utf8')
+    await rename(tempPath, filePath)
+  } catch (error) {
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'EROFS') {
+      throw new Error('READ_ONLY_STORAGE')
+    }
+
+    throw error
+  }
 }
 
 const issueMessage = (error) => {
@@ -292,12 +305,16 @@ app.use(helmet({
 
 app.use((req, res, next) => {
   const origin = req.headers.origin
+  const requestHost = req.headers.host
+  const forwardedProto = req.headers['x-forwarded-proto']
+  const protocol = typeof forwardedProto === 'string' ? forwardedProto : 'https'
+  const sameOrigin = origin && requestHost ? origin === `${protocol}://${requestHost}` : false
 
   if (!origin) {
     return next()
   }
 
-  if (origin === env.allowedOrigin) {
+  if (sameOrigin || allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin)
     res.setHeader('Access-Control-Allow-Credentials', 'true')
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
@@ -555,10 +572,22 @@ createCrudHandlers({
 })
 
 app.use((error, _req, res, _next) => {
+  if (error instanceof Error && error.message === 'READ_ONLY_STORAGE') {
+    return res.status(503).json({
+      message: 'Запись недоступна в read-only окружении. Для Vercel подключите внешнюю БД/хранилище.',
+    })
+  }
+
   console.error('[admin-api] unexpected error', error)
   return res.status(500).json({ message: 'Внутренняя ошибка сервера' })
 })
 
-app.listen(env.port, () => {
-  console.log(`[admin-api] listening on http://localhost:${env.port}`)
-})
+const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME)
+
+if (!isServerless) {
+  app.listen(env.port, () => {
+    console.log(`[admin-api] listening on http://localhost:${env.port}`)
+  })
+}
+
+export default app

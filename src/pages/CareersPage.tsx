@@ -6,7 +6,7 @@ import { Seo } from '../components/seo/Seo'
 import { Breadcrumbs } from '../components/ui/Breadcrumbs'
 import { Card } from '../components/ui/Card'
 import { FiltersBar } from '../components/ui/FiltersBar'
-import { vacancies } from '../data'
+import { usePublicVacancies } from '../hooks/usePublicCollections'
 import type { Vacancy, VacancySort } from '../types/models'
 import {
   formatDate,
@@ -41,6 +41,7 @@ const withPinnedFirst = (
 }
 
 export const CareersPage = () => {
+  const { data: vacancies, error: vacanciesError } = usePublicVacancies()
   const [searchParams, setSearchParams] = useSearchParams()
 
   const filters = {
@@ -61,7 +62,7 @@ export const CareersPage = () => {
       employment: Array.from(new Set(vacancies.map((vacancy) => vacancy.employment))),
       experience: Array.from(new Set(vacancies.map((vacancy) => vacancy.experience))),
     }),
-    [],
+    [vacancies],
   )
 
   const filteredVacancies = useMemo(() => {
@@ -110,6 +111,7 @@ export const CareersPage = () => {
     filters.format,
     filters.query,
     filters.sort,
+    vacancies,
   ])
 
   const handleChange = (key: string, value: string, defaultValue = '') => {
@@ -157,6 +159,11 @@ export const CareersPage = () => {
 
       <section className="bg-canvas py-10 text-ink sm:py-12 lg:py-16">
         <Container>
+          {vacanciesError ? (
+            <p className="caption mb-4 text-muted">
+              Отображаются локальные данные. API: {vacanciesError}
+            </p>
+          ) : null}
 
 
           <Reveal>

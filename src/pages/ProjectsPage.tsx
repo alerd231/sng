@@ -6,7 +6,7 @@ import { Seo } from '../components/seo/Seo'
 import { Breadcrumbs } from '../components/ui/Breadcrumbs'
 import { Card } from '../components/ui/Card'
 import { FiltersBar } from '../components/ui/FiltersBar'
-import { projects } from '../data'
+import { usePublicProjects } from '../hooks/usePublicCollections'
 import { uniqueValues } from '../utils/collections'
 import { setParam } from '../utils/searchParams'
 
@@ -16,6 +16,7 @@ const selectClassName =
 const labelClassName = 'flex flex-col gap-3 px-2'
 
 export const ProjectsPage = () => {
+  const { data: projects, error: projectsError } = usePublicProjects()
   const [searchParams, setSearchParams] = useSearchParams()
 
   const filters = {
@@ -39,7 +40,7 @@ export const ProjectsPage = () => {
       regions,
       years,
     }
-  }, [])
+  }, [projects])
 
   const filteredProjects = useMemo(
     () =>
@@ -64,7 +65,7 @@ export const ProjectsPage = () => {
           return true
         })
         .sort((left, right) => right.year - left.year),
-    [filters.objectType, filters.region, filters.workType, filters.year],
+    [filters.objectType, filters.region, filters.workType, filters.year, projects],
   )
 
   const handleFilterChange = (key: string, value: string) => {
@@ -112,6 +113,11 @@ export const ProjectsPage = () => {
 
       <section className="bg-canvas py-10 text-ink sm:py-12 lg:py-16">
         <Container>
+          {projectsError ? (
+            <p className="caption mb-4 text-muted">
+              Отображаются локальные данные. API: {projectsError}
+            </p>
+          ) : null}
 
           <Reveal>
             <FiltersBar onReset={resetFilters}>
@@ -232,4 +238,3 @@ export const ProjectsPage = () => {
     </>
   )
 }
-

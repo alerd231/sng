@@ -6,7 +6,7 @@ import { Breadcrumbs } from '../components/ui/Breadcrumbs'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
 import { FiltersBar } from '../components/ui/FiltersBar'
-import { documents } from '../data'
+import { usePublicDocuments } from '../hooks/usePublicCollections'
 import { formatDate } from '../utils/format'
 
 const inputClassName =
@@ -18,12 +18,13 @@ const selectClassName =
 const labelClassName = 'flex flex-col gap-3 px-2'
 
 export const DocumentsPage = () => {
+  const { data: documents, error: documentsError } = usePublicDocuments()
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('')
 
   const categories = useMemo(
     () => Array.from(new Set(documents.map((document) => document.category))),
-    [],
+    [documents],
   )
 
   const filteredDocuments = useMemo(
@@ -37,7 +38,7 @@ export const DocumentsPage = () => {
           return matchesQuery && matchesCategory
         })
         .sort((left, right) => right.date.localeCompare(left.date)),
-    [category, query],
+    [category, documents, query],
   )
 
   return (
@@ -77,6 +78,11 @@ export const DocumentsPage = () => {
 
       <section className="bg-canvas py-10 text-ink sm:py-12 lg:py-16">
         <Container>
+          {documentsError ? (
+            <p className="caption mb-4 text-muted">
+              Отображаются локальные данные. API: {documentsError}
+            </p>
+          ) : null}
 
           <Reveal>
             <FiltersBar onReset={() => {
@@ -145,4 +151,3 @@ export const DocumentsPage = () => {
     </>
   )
 }
-

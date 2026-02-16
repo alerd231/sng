@@ -6,7 +6,8 @@ import { Seo } from '../components/seo/Seo'
 import { Breadcrumbs } from '../components/ui/Breadcrumbs'
 import { Card } from '../components/ui/Card'
 import { Tabs, type TabItem } from '../components/ui/Tabs'
-import { competencies, projects } from '../data'
+import { competencies } from '../data'
+import { usePublicProjects } from '../hooks/usePublicCollections'
 
 const groupLabels = {
   construction: 'Строительно-монтажный блок',
@@ -21,9 +22,10 @@ const groupedCompetencies = Object.entries(groupLabels).map(([group, label]) => 
   items: competencies.filter((competency) => competency.group === group),
 }))
 
-const relatedProjects = projects.slice(0, 4)
-
 export const CompetenciesPage = () => {
+  const { data: projects } = usePublicProjects()
+  const relatedProjects = projects.slice(0, 4)
+
   const tabs: TabItem[] = groupedCompetencies.map(({ group, label, items }) => ({
     id: group,
     label,

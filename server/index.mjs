@@ -609,6 +609,9 @@ app.post('/api/admin/assets/upload', authenticate, async (req, res) => {
 })
 
 app.get('/api/public/projects', async (_req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
+  res.setHeader('Pragma', 'no-cache')
+  res.setHeader('Expires', '0')
   const list = await readCollection({
     filePath: projectsPath,
     label: 'projects.json',
@@ -618,6 +621,9 @@ app.get('/api/public/projects', async (_req, res) => {
 })
 
 app.get('/api/public/vacancies', async (_req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
+  res.setHeader('Pragma', 'no-cache')
+  res.setHeader('Expires', '0')
   const list = await readCollection({
     filePath: vacanciesPath,
     label: 'vacancies.json',
@@ -627,6 +633,9 @@ app.get('/api/public/vacancies', async (_req, res) => {
 })
 
 app.get('/api/public/documents', async (_req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
+  res.setHeader('Pragma', 'no-cache')
+  res.setHeader('Expires', '0')
   const list = await readCollection({
     filePath: documentsPath,
     label: 'documents.json',

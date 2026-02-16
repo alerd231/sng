@@ -10,7 +10,7 @@ import { Breadcrumbs } from '../components/ui/Breadcrumbs'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
 import { Modal } from '../components/ui/Modal'
-import { vacancies } from '../data'
+import { usePublicVacancies } from '../hooks/usePublicCollections'
 import {
   formatDate,
   formatEmployment,
@@ -91,6 +91,7 @@ const workflowReveal: Variants = {
 
 export const CareerDetailPage = () => {
   const { slug } = useParams()
+  const { data: vacancies, loading: vacanciesLoading } = usePublicVacancies()
   const vacancy = vacancies.find((item) => item.slug === slug)
 
   const [modalOpen, setModalOpen] = useState(false)
@@ -137,6 +138,16 @@ export const CareerDetailPage = () => {
       },
     ]
   }, [vacancy])
+
+  if (!vacancy && vacanciesLoading) {
+    return (
+      <section className="bg-canvas py-20 text-ink">
+        <Container>
+          <p className="caption text-muted">Загрузка вакансии...</p>
+        </Container>
+      </section>
+    )
+  }
 
   if (!vacancy) {
     return <Navigate to="/404" replace />

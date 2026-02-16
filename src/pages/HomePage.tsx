@@ -8,9 +8,12 @@ import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
 import { Divider } from '../components/ui/Divider'
 import { StatCounter } from '../components/ui/StatCounter'
-import { competencies, documents, projects } from '../data'
+import { competencies } from '../data'
+import { usePublicDocuments, usePublicProjects } from '../hooks/usePublicCollections'
 
 export const HomePage = () => {
+  const { data: projects } = usePublicProjects()
+  const { data: documents } = usePublicDocuments()
   const featuredProjects = [...projects]
     .sort((left, right) => right.year - left.year)
     .slice(0, 3)

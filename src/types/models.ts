@@ -11,6 +11,22 @@ export interface Competency {
   services: string[]
 }
 
+export interface Partner {
+  id: string
+  name: string
+  logo: string
+  mark: string
+  role: string
+}
+
+export interface ExperienceItem {
+  id: string
+  year: number
+  customer: string
+  subject: string
+  work: string
+}
+
 export interface ProjectFile {
   name: string
   type: string

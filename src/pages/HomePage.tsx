@@ -1,5 +1,6 @@
 ﻿import { Link } from 'react-router-dom'
 import { MainHeroSlider } from '../components/home/MainHeroSlider'
+import { PartnersSection } from '../components/home/PartnersSection'
 import { PresenceSection } from '../components/home/PresenceSection'
 import { Reveal } from '../components/motion/Reveal'
 import { Seo } from '../components/seo/Seo'
@@ -54,8 +55,10 @@ export const HomePage = () => {
         </div>
       </Section>
 
+      <PartnersSection />
+
       <Section
-        index="03"
+        index="04"
         title="Выбранные проекты"
         description="Репрезентативные кейсы 2023-2024 годов по ГРС, ИТСО и дорожной инфраструктуре."
         tone="dark"
@@ -64,23 +67,36 @@ export const HomePage = () => {
           {featuredProjects.map((project, index) => (
             <Reveal key={project.id} delay={index * 0.07}>
               <Card dark className="p-0">
-                <Link to={`/projects/${project.slug}`} className="block p-5 sm:p-7">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <p className="caption text-white/55">{project.year}</p>
-                      <h3 className="mt-3 text-xl font-semibold">{project.title}</h3>
-                    </div>
-                    <span className="text-xs uppercase tracking-[0.2em] text-white/55">
-                      {project.objectType}
-                    </span>
+                <Link to={`/projects/${project.slug}`} className="block">
+                  <div className="relative h-52 overflow-hidden sm:h-56">
+                    <img
+                      src={project.heroImage}
+                      alt={project.title}
+                      className="h-full w-full object-cover transition duration-500 ease-smooth group-hover:scale-[1.03]"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-black/25" />
                   </div>
-                  <p className="mt-4 max-w-2xl text-sm leading-relaxed text-white/72">
-                    {project.excerpt}
-                  </p>
-                  <Divider dark className="mt-5" />
-                  <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-[0.58rem] uppercase tracking-[0.2em] text-white/60 sm:text-[0.62rem]">
-                    <span>{project.region}</span>
-                    <span className="text-accent">Открыть проект →</span>
+
+                  <div className="p-5 sm:p-7">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className="caption text-white/55">{project.year}</p>
+                        <h3 className="mt-3 text-xl font-semibold">{project.title}</h3>
+                      </div>
+                      <span className="text-xs uppercase tracking-[0.2em] text-white/55">
+                        {project.objectType}
+                      </span>
+                    </div>
+                    <p className="mt-4 max-w-2xl text-sm leading-relaxed text-white/72">
+                      {project.excerpt}
+                    </p>
+                    <Divider dark className="mt-5" />
+                    <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-[0.58rem] uppercase tracking-[0.2em] text-white/60 sm:text-[0.62rem]">
+                      <span>{project.region}</span>
+                      <span className="text-accent">Открыть проект &rarr;</span>
+                    </div>
                   </div>
                 </Link>
               </Card>
@@ -94,7 +110,7 @@ export const HomePage = () => {
           <Reveal>
             <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
               <div>
-                <p className="caption text-white/55">04</p>
+                <p className="caption text-white/55">05</p>
                 <h2 className="mt-4 text-2xl font-semibold leading-tight sm:text-4xl">
                   Производственные показатели
                 </h2>
@@ -113,7 +129,7 @@ export const HomePage = () => {
       </section>
 
       <Section
-        index="05"
+        index="06"
         title="Документы"
         description="Библиотека учредительных, разрешительных и регламентных документов для закупочных процедур."
       >
@@ -144,3 +160,5 @@ export const HomePage = () => {
     </>
   )
 }
+
+

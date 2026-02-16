@@ -1,0 +1,44 @@
+[
+  {
+    "id": "partner-gtk",
+    "name": "ООО «Газпром трансгаз Казань»",
+    "logo": "/images/partners/gtk.svg",
+    "mark": "GTK",
+    "role": "заказчик профильных проектов"
+  },
+  {
+    "id": "partner-atgs",
+    "name": "АО «АТГС»",
+    "logo": "/images/partners/atgs.svg",
+    "mark": "ATGS",
+    "role": "исполнитель по шеф-монтажу и ПНР"
+  },
+  {
+    "id": "partner-ric",
+    "name": "ООО «РИЦ»",
+    "logo": "/images/partners/ric.svg",
+    "mark": "RIC",
+    "role": "интегратор систем ТСО/ИТСО"
+  },
+  {
+    "id": "partner-sts",
+    "name": "ООО «Самаратрансстрой»",
+    "logo": "/images/partners/sts.svg",
+    "mark": "STS",
+    "role": "подрядчик инфраструктурных объектов"
+  },
+  {
+    "id": "partner-ang",
+    "name": "ООО «АльянсНефтеГаз»",
+    "logo": "/images/partners/ang.svg",
+    "mark": "ANG",
+    "role": "партнер по комплексной автоматизации"
+  },
+  {
+    "id": "partner-sber",
+    "name": "ПАО Сбербанк",
+    "logo": "/images/partners/sbr.svg",
+    "mark": "SBR",
+    "role": "расчетный банковский партнер"
+  }
+]

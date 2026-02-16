@@ -132,7 +132,7 @@ export const PresenceSection = () => {
                   className={`pointer-events-none absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-nowrap border px-2 py-1 text-[0.55rem] uppercase tracking-[0.14em] backdrop-blur-sm transition ${
                     active
                       ? 'border-accent/80 bg-black/72 text-white'
-                      : 'border-white/25 bg-black/45 text-white/72 group-hover:border-accent/70 group-hover:text-white'
+                      : 'border-white/25 bg-black/45 text-white/72 group-hover:border-accent/70 group-hover:text-white text-white text-opacity-25'
                   }`}
                 >
                   {location.city}
@@ -142,7 +142,7 @@ export const PresenceSection = () => {
           })}
 
           <div className="absolute bottom-4 left-4 right-4 border border-white/15 bg-black/40 p-3 sm:bottom-6 sm:left-6 sm:right-6">
-            <p className="caption text-white/58">Активная площадка</p>
+            <p className="caption text-white text-opacity-55">Активная площадка</p>
             <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
               <div>
                 <p className="text-sm uppercase tracking-[0.14em] text-white/75">{activeLocation.region}</p>
@@ -176,7 +176,7 @@ export const PresenceSection = () => {
                   <span className="block text-[0.62rem] uppercase tracking-[0.16em] text-muted">
                     {location.region}
                   </span>
-                  <span className="mt-1 block font-medium text-ink">{location.city}</span>
+                  <span className="mt-1 block font-medium text-ink ">{location.city}</span>
                 </span>
                 <span className="text-[0.58rem] uppercase tracking-[0.2em] text-accent">
                   {location.projects}

@@ -9,6 +9,7 @@ import express from 'express'
 import rateLimit from 'express-rate-limit'
 import helmet from 'helmet'
 import jwt from 'jsonwebtoken'
+import { kv } from '@vercel/kv'
 import { z } from 'zod'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -62,6 +63,7 @@ const projectsPath = path.resolve(rootDir, 'src/data/projects.json')
 const vacanciesPath = path.resolve(rootDir, 'src/data/vacancies.json')
 const documentsPath = path.resolve(rootDir, 'src/data/documents.json')
 const uploadsDirPath = path.resolve(rootDir, 'public/uploads')
+const hasKvStorage = Boolean(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN)
 
 const runtimeSessions = new Map()
 
@@ -216,6 +218,55 @@ const writeBinaryFile = async (filePath, value) => {
     }
 
     throw error
+  }
+}
+
+const readCollection = async ({ filePath, label, storageKey }) => {
+  if (!hasKvStorage) {
+    return readJsonArray(filePath, label)
+  }
+
+  try {
+    const payload = await kv.get(storageKey)
+
+    if (Array.isArray(payload)) {
+      return payload
+    }
+
+    if (payload === null) {
+      const initialData = await readJsonArray(filePath, label)
+      await kv.set(storageKey, initialData)
+      return initialData
+    }
+
+    if (typeof payload === 'string') {
+      const parsed = safeJsonParse(payload, label)
+
+      if (Array.isArray(parsed)) {
+        return parsed
+      }
+    }
+
+    throw new Error('KV_INVALID_PAYLOAD')
+  } catch (error) {
+    if (error instanceof Error && error.message === 'KV_INVALID_PAYLOAD') {
+      throw error
+    }
+
+    throw new Error('KV_UNAVAILABLE')
+  }
+}
+
+const writeCollection = async ({ filePath, storageKey }, value) => {
+  if (!hasKvStorage) {
+    await writeJsonArray(filePath, value)
+    return
+  }
+
+  try {
+    await kv.set(storageKey, value)
+  } catch {
+    throw new Error('KV_UNAVAILABLE')
   }
 }
 
@@ -547,28 +598,45 @@ app.post('/api/admin/assets/upload', authenticate, async (req, res) => {
 })
 
 app.get('/api/public/projects', async (_req, res) => {
-  const list = await readJsonArray(projectsPath, 'projects.json')
+  const list = await readCollection({
+    filePath: projectsPath,
+    label: 'projects.json',
+    storageKey: 'sng:projects',
+  })
   return res.json(list)
 })
 
 app.get('/api/public/vacancies', async (_req, res) => {
-  const list = await readJsonArray(vacanciesPath, 'vacancies.json')
+  const list = await readCollection({
+    filePath: vacanciesPath,
+    label: 'vacancies.json',
+    storageKey: 'sng:vacancies',
+  })
   return res.json(list)
 })
 
 app.get('/api/public/documents', async (_req, res) => {
-  const list = await readJsonArray(documentsPath, 'documents.json')
+  const list = await readCollection({
+    filePath: documentsPath,
+    label: 'documents.json',
+    storageKey: 'sng:documents',
+  })
   return res.json(list)
 })
 
 const createCrudHandlers = ({
   key,
   filePath,
+  storageKey,
   schema,
   uniqueFields = [],
 }) => {
   app.get(`/api/admin/${key}`, authenticate, async (_req, res) => {
-    const list = await readJsonArray(filePath, `${key}.json`)
+    const list = await readCollection({
+      filePath,
+      label: `${key}.json`,
+      storageKey,
+    })
     return res.json(list)
   })
 
@@ -580,7 +648,11 @@ const createCrudHandlers = ({
     }
 
     const nextItem = parsed.data
-    const list = await readJsonArray(filePath, `${key}.json`)
+    const list = await readCollection({
+      filePath,
+      label: `${key}.json`,
+      storageKey,
+    })
 
     if (list.some((item) => item.id === nextItem.id)) {
       return res.status(409).json({ message: `Элемент с id=${nextItem.id} уже существует` })
@@ -593,7 +665,7 @@ const createCrudHandlers = ({
     }
 
     const nextList = [...list, nextItem]
-    await writeJsonArray(filePath, nextList)
+    await writeCollection({ filePath, storageKey }, nextList)
     auditLog({ action: 'create', resource: key, id: nextItem.id, actor: req.admin?.username ?? 'admin' })
     return res.status(201).json(nextItem)
   })
@@ -612,7 +684,11 @@ const createCrudHandlers = ({
       return res.status(400).json({ message: 'ID в URL и payload должен совпадать' })
     }
 
-    const list = await readJsonArray(filePath, `${key}.json`)
+    const list = await readCollection({
+      filePath,
+      label: `${key}.json`,
+      storageKey,
+    })
     const index = list.findIndex((item) => item.id === id)
 
     if (index === -1) {
@@ -627,14 +703,18 @@ const createCrudHandlers = ({
 
     const nextList = [...list]
     nextList[index] = updated
-    await writeJsonArray(filePath, nextList)
+    await writeCollection({ filePath, storageKey }, nextList)
     auditLog({ action: 'update', resource: key, id, actor: req.admin?.username ?? 'admin' })
     return res.json(updated)
   })
 
   app.delete(`/api/admin/${key}/:id`, authenticate, async (req, res) => {
     const id = String(req.params.id ?? '')
-    const list = await readJsonArray(filePath, `${key}.json`)
+    const list = await readCollection({
+      filePath,
+      label: `${key}.json`,
+      storageKey,
+    })
     const index = list.findIndex((item) => item.id === id)
 
     if (index === -1) {
@@ -642,7 +722,7 @@ const createCrudHandlers = ({
     }
 
     const [removed] = list.splice(index, 1)
-    await writeJsonArray(filePath, list)
+    await writeCollection({ filePath, storageKey }, list)
     auditLog({ action: 'delete', resource: key, id, actor: req.admin?.username ?? 'admin' })
     return res.json({ ok: true, removed })
   })
@@ -651,6 +731,7 @@ const createCrudHandlers = ({
 createCrudHandlers({
   key: 'projects',
   filePath: projectsPath,
+  storageKey: 'sng:projects',
   schema: projectSchema,
   uniqueFields: ['slug'],
 })
@@ -658,6 +739,7 @@ createCrudHandlers({
 createCrudHandlers({
   key: 'vacancies',
   filePath: vacanciesPath,
+  storageKey: 'sng:vacancies',
   schema: vacancySchema,
   uniqueFields: ['slug'],
 })
@@ -665,13 +747,26 @@ createCrudHandlers({
 createCrudHandlers({
   key: 'documents',
   filePath: documentsPath,
+  storageKey: 'sng:documents',
   schema: documentSchema,
 })
 
 app.use((error, _req, res, _next) => {
   if (error instanceof Error && error.message === 'READ_ONLY_STORAGE') {
     return res.status(503).json({
-      message: 'Запись недоступна в read-only окружении. Для Vercel подключите внешнюю БД/хранилище.',
+      message: 'Запись недоступна в read-only окружении. Для Vercel подключите Redis/KV или внешнюю БД.',
+    })
+  }
+
+  if (error instanceof Error && error.message === 'KV_UNAVAILABLE') {
+    return res.status(503).json({
+      message: 'Хранилище KV недоступно. Проверьте переменные KV_REST_API_URL и KV_REST_API_TOKEN.',
+    })
+  }
+
+  if (error instanceof Error && error.message === 'KV_INVALID_PAYLOAD') {
+    return res.status(500).json({
+      message: 'Данные в KV повреждены или имеют неверный формат.',
     })
   }
 

@@ -9,6 +9,7 @@ import express from 'express'
 import rateLimit from 'express-rate-limit'
 import helmet from 'helmet'
 import jwt from 'jsonwebtoken'
+import { put } from '@vercel/blob'
 import { createClient } from '@vercel/kv'
 import { z } from 'zod'
 
@@ -63,6 +64,9 @@ const projectsPath = path.resolve(rootDir, 'src/data/projects.json')
 const vacanciesPath = path.resolve(rootDir, 'src/data/vacancies.json')
 const documentsPath = path.resolve(rootDir, 'src/data/documents.json')
 const uploadsDirPath = path.resolve(rootDir, 'public/uploads')
+const isServerlessRuntime = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME)
+const blobToken = process.env.BLOB_READ_WRITE_TOKEN ?? ''
+const hasBlobStorage = Boolean(blobToken)
 const kvUrl = process.env.KV_REST_API_URL ?? process.env.UPSTASH_REDIS_REST_URL ?? ''
 const kvToken = process.env.KV_REST_API_TOKEN ?? process.env.UPSTASH_REDIS_REST_TOKEN ?? ''
 const hasKvStorage = Boolean(kvUrl && kvToken)
@@ -298,6 +302,46 @@ const sanitizeBaseName = (input) => {
     .toLowerCase()
 
   return safe || 'image'
+}
+
+const uploadImageAsset = async ({ filename, extension, mimeType, buffer }) => {
+  const safeName = sanitizeBaseName(filename)
+  const uniqueName = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}-${safeName}.${extension}`
+
+  if (hasBlobStorage) {
+    try {
+      const blob = await put(`uploads/${uniqueName}`, buffer, {
+        access: 'public',
+        addRandomSuffix: false,
+        contentType: mimeType,
+        cacheControlMaxAge: 60 * 60 * 24 * 365,
+        token: blobToken,
+      })
+
+      return {
+        id: uniqueName,
+        provider: 'blob',
+        url: blob.url,
+      }
+    } catch (error) {
+      console.error('[admin-api] blob upload failed', error)
+      throw new Error('BLOB_UPLOAD_FAILED')
+    }
+  }
+
+  if (isServerlessRuntime) {
+    throw new Error('BLOB_NOT_CONFIGURED')
+  }
+
+  await mkdir(uploadsDirPath, { recursive: true })
+  const fullPath = path.resolve(uploadsDirPath, uniqueName)
+  await writeBinaryFile(fullPath, buffer)
+
+  return {
+    id: uniqueName,
+    provider: 'local',
+    url: `/uploads/${uniqueName}`,
+  }
 }
 
 const auditLog = ({ action, resource, id, actor }) => {
@@ -587,23 +631,24 @@ app.post('/api/admin/assets/upload', authenticate, async (req, res) => {
     return res.status(413).json({ message: 'Размер файла превышает 6MB' })
   }
 
-  await mkdir(uploadsDirPath, { recursive: true })
-
-  const safeName = sanitizeBaseName(filename)
-  const uniqueName = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}-${safeName}.${extension}`
-  const fullPath = path.resolve(uploadsDirPath, uniqueName)
-  await writeBinaryFile(fullPath, buffer)
+  const uploaded = await uploadImageAsset({
+    filename,
+    extension,
+    mimeType,
+    buffer,
+  })
 
   auditLog({
     action: 'upload',
     resource: 'assets',
-    id: uniqueName,
+    id: uploaded.id,
     actor: req.admin?.username ?? 'admin',
   })
 
   return res.status(201).json({
-    url: `/uploads/${uniqueName}`,
+    url: uploaded.url,
     size: buffer.length,
+    storage: uploaded.provider,
     type: mimeType,
   })
 })
@@ -790,13 +835,23 @@ app.use((error, _req, res, _next) => {
     })
   }
 
+  if (error instanceof Error && error.message === 'BLOB_NOT_CONFIGURED') {
+    return res.status(503).json({
+      message: 'Хранилище Blob не настроено. Добавьте BLOB_READ_WRITE_TOKEN в переменные окружения Vercel.',
+    })
+  }
+
+  if (error instanceof Error && error.message === 'BLOB_UPLOAD_FAILED') {
+    return res.status(503).json({
+      message: 'Не удалось загрузить файл в Blob Storage. Проверьте токен и настройки проекта Vercel.',
+    })
+  }
+
   console.error('[admin-api] unexpected error', error)
   return res.status(500).json({ message: 'Внутренняя ошибка сервера' })
 })
 
-const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME)
-
-if (!isServerless) {
+if (!isServerlessRuntime) {
   app.listen(env.port, () => {
     console.log(`[admin-api] listening on http://localhost:${env.port}`)
   })

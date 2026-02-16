@@ -4,87 +4,120 @@ interface IntroPreloaderProps {
   open: boolean
 }
 
-const BRAND_TEXT = 'СТРОЙНЕФТЕГАЗ'
+const DRAW_EASE: [number, number, number, number] = [0.22, 1, 0.36, 1]
+
+const lineTransition = (delay: number) => ({
+  duration: 0.8,
+  delay,
+  ease: DRAW_EASE,
+})
 
 export const IntroPreloader = ({ open }: IntroPreloaderProps) => {
   const reduceMotion = useReducedMotion()
-  const letters = BRAND_TEXT.split('')
+  const draw = reduceMotion ? { pathLength: 1, opacity: 1 } : { pathLength: 1, opacity: 1 }
 
   return (
     <AnimatePresence>
       {open ? (
         <motion.div
-          className="fixed inset-0 z-[220] flex items-center justify-center overflow-hidden bg-[#0c0f14]"
+          className="fixed inset-0 z-[500] flex items-center justify-center overflow-hidden"
+          style={{ backgroundColor: '#06090E' }}
           initial={{ opacity: 1 }}
           animate={{ opacity: 1 }}
-          exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -28 }}
-          transition={{ duration: reduceMotion ? 0.22 : 0.64, ease: [0.22, 1, 0.36, 1] }}
+          exit={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 1.015 }}
+          transition={{ duration: reduceMotion ? 0.2 : 0.45, ease: DRAW_EASE }}
           aria-hidden="true"
         >
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_18%,rgba(184,29,39,0.28),transparent_36%),radial-gradient(circle_at_84%_14%,rgba(255,255,255,0.09),transparent_34%)]" />
-          <div className="pointer-events-none absolute inset-[14px] border border-white/10 sm:inset-[20px]" />
+          <div className="pointer-events-none absolute inset-0 bg-black/70" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_22%,rgba(255,255,255,0.08),transparent_42%),radial-gradient(circle_at_80%_72%,rgba(255,255,255,0.04),transparent_38%)]" />
 
-          <div className="relative z-10 w-full max-w-[min(980px,92vw)] px-4 text-center">
-            <motion.p
-              className="caption text-white/50"
-              initial={reduceMotion ? false : { opacity: 0, y: 6 }}
-              animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
-              transition={{ duration: 0.45 }}
+          <motion.div
+            className="relative w-[min(82vw,520px)]"
+            initial={reduceMotion ? { opacity: 1 } : { opacity: 0.78, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.45, ease: DRAW_EASE }}
+          >
+            <motion.svg
+              viewBox="0 0 768 871"
+              className="h-auto w-full"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              initial={false}
             >
-              ИНЖЕНЕРНЫЙ КОНТУР
-            </motion.p>
+              <g stroke="#FFFFFF" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                <motion.path
+                  d="M540 244 A294 294 0 1 0 540 622"
+                  initial={{ pathLength: 0, opacity: 0.8 }}
+                  animate={draw}
+                  transition={lineTransition(0.05)}
+                />
+                <motion.path
+                  d="M464 308 A194 194 0 1 0 464 558"
+                  initial={{ pathLength: 0, opacity: 0.8 }}
+                  animate={draw}
+                  transition={lineTransition(0.2)}
+                />
 
-            <div className="relative mt-4 overflow-hidden border border-white/20 bg-white/[0.02] px-3 py-5 sm:px-8 sm:py-8">
-              <motion.div
-                className="pointer-events-none absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-transparent via-accent/75 to-transparent"
-                initial={reduceMotion ? false : { x: '-140%' }}
-                animate={
-                  reduceMotion
-                    ? { opacity: 0 }
-                    : { x: ['-140%', '190%'], opacity: [0, 0.5, 0.22, 0] }
-                }
-                transition={{
-                  duration: 1.9,
-                  ease: 'easeInOut',
-                  repeat: Infinity,
-                  repeatDelay: 0.2,
-                }}
-              />
+                <motion.rect
+                  x="266"
+                  y="4"
+                  width="103"
+                  height="863"
+                  initial={{ pathLength: 0, opacity: 0.8 }}
+                  animate={draw}
+                  transition={lineTransition(0.35)}
+                />
 
-              <h1 className="flex flex-wrap items-center justify-center gap-x-[0.12em] gap-y-2 text-2xl font-semibold uppercase tracking-[0.08em] text-white sm:text-5xl lg:text-6xl">
-                {letters.map((letter, index) => (
-                  <motion.span
-                    key={`${letter}-${index}`}
-                    initial={reduceMotion ? false : { opacity: 0, y: 14, filter: 'blur(4px)' }}
-                    animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, filter: 'blur(0px)' }}
-                    transition={{
-                      duration: 0.42,
-                      delay: reduceMotion ? 0 : 0.22 + index * 0.04,
-                      ease: [0.22, 1, 0.36, 1],
-                    }}
-                  >
-                    {letter === ' ' ? '\u00A0' : letter}
-                  </motion.span>
-                ))}
-              </h1>
+                <motion.path
+                  d="M266 95 L582 102 L680 209 L742 209 L742 4 L266 4"
+                  initial={{ pathLength: 0, opacity: 0.8 }}
+                  animate={draw}
+                  transition={lineTransition(0.5)}
+                />
 
-              <motion.div
-                className="mx-auto mt-4 h-px bg-white/35"
-                initial={reduceMotion ? false : { width: 0 }}
-                animate={reduceMotion ? { width: '100%' } : { width: ['0%', '100%'] }}
-                transition={{ duration: reduceMotion ? 0.15 : 1.1, ease: 'easeOut' }}
-              />
-            </div>
+                <motion.rect
+                  x="637"
+                  y="317"
+                  width="105"
+                  height="406"
+                  initial={{ pathLength: 0, opacity: 0.8 }}
+                  animate={draw}
+                  transition={lineTransition(0.66)}
+                />
 
-            <div className="mx-auto mt-6 h-[2px] w-52 overflow-hidden bg-white/20 sm:w-72">
-              <motion.div
-                className="h-full bg-accent"
-                initial={{ x: '-100%' }}
-                animate={reduceMotion ? { x: '0%' } : { x: ['-100%', '0%'] }}
-                transition={{ duration: reduceMotion ? 0.2 : 1.8, ease: [0.22, 1, 0.36, 1] }}
-              />
-            </div>
-          </div>
+                <motion.line
+                  x1="369"
+                  y1="428"
+                  x2="637"
+                  y2="428"
+                  initial={{ pathLength: 0, opacity: 0.8 }}
+                  animate={draw}
+                  transition={lineTransition(0.82)}
+                />
+
+                <motion.line
+                  x1="369"
+                  y1="528"
+                  x2="637"
+                  y2="528"
+                  initial={{ pathLength: 0, opacity: 0.8 }}
+                  animate={draw}
+                  transition={lineTransition(0.94)}
+                />
+              </g>
+            </motion.svg>
+
+            <motion.div
+              className="pointer-events-none absolute inset-0"
+              initial={reduceMotion ? { opacity: 0 } : { opacity: 0 }}
+              animate={reduceMotion ? { opacity: 0 } : { opacity: [0, 0.35, 0.12, 0] }}
+              transition={{ duration: 1.8, delay: 0.9, ease: 'easeInOut' }}
+              style={{
+                background:
+                  'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0) 62%)',
+              }}
+            />
+          </motion.div>
         </motion.div>
       ) : null}
     </AnimatePresence>

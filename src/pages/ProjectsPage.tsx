@@ -112,31 +112,6 @@ export const ProjectsPage = () => {
 
       <section className="bg-canvas py-10 text-ink sm:py-12 lg:py-16">
         <Container>
-          <Reveal>
-            <div className="mb-7 grid gap-3 md:mb-8 md:grid-cols-3">
-              <img
-                src="/images/object-grs.png"
-                alt="Газораспределительная станция"
-                className="h-32 w-full border border-ink/15 object-cover sm:h-40"
-                loading="lazy"
-                decoding="async"
-              />
-              <img
-                src="/images/object-grs.png"
-                alt="Автодорожный объект"
-                className="h-32 w-full border border-ink/15 object-cover sm:h-40"
-                loading="lazy"
-                decoding="async"
-              />
-              <img
-                src="/images/object-grs.png"
-                alt="Объект с системами ТСО и ИТСО"
-                className="h-32 w-full border border-ink/15 object-cover sm:h-40"
-                loading="lazy"
-                decoding="async"
-              />
-            </div>
-          </Reveal>
 
           <Reveal>
             <FiltersBar onReset={resetFilters}>

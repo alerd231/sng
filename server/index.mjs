@@ -1,6 +1,6 @@
 ﻿import 'dotenv/config'
 import crypto from 'node:crypto'
-import { readFile, rename, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import bcrypt from 'bcryptjs'
@@ -61,6 +61,7 @@ const refreshCookieName = 'sng_admin_refresh'
 const projectsPath = path.resolve(rootDir, 'src/data/projects.json')
 const vacanciesPath = path.resolve(rootDir, 'src/data/vacancies.json')
 const documentsPath = path.resolve(rootDir, 'src/data/documents.json')
+const uploadsDirPath = path.resolve(rootDir, 'public/uploads')
 
 const runtimeSessions = new Map()
 
@@ -157,6 +158,20 @@ const loginSchema = z.object({
   password: z.string().min(1).max(300),
 })
 
+const assetUploadSchema = z.object({
+  filename: z.string().min(1).max(180),
+  dataUrl: z.string().min(30).max(10_000_000),
+})
+
+const allowedImageTypes = new Map([
+  ['image/jpeg', 'jpg'],
+  ['image/jpg', 'jpg'],
+  ['image/png', 'png'],
+  ['image/webp', 'webp'],
+  ['image/avif', 'avif'],
+  ['image/gif', 'gif'],
+])
+
 const safeJsonParse = (raw, label) => {
   try {
     const normalized = typeof raw === 'string' ? raw.replace(/^\uFEFF/, '') : raw
@@ -192,12 +207,35 @@ const writeJsonArray = async (filePath, value) => {
   }
 }
 
+const writeBinaryFile = async (filePath, value) => {
+  try {
+    await writeFile(filePath, value)
+  } catch (error) {
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'EROFS') {
+      throw new Error('READ_ONLY_STORAGE')
+    }
+
+    throw error
+  }
+}
+
 const issueMessage = (error) => {
   if (error instanceof z.ZodError) {
     return error.issues.map((issue) => `${issue.path.join('.') || 'root'}: ${issue.message}`).join('; ')
   }
 
   return error instanceof Error ? error.message : 'Некорректные данные'
+}
+
+const sanitizeBaseName = (input) => {
+  const base = path.basename(input).replace(/\.[^/.]+$/, '')
+  const safe = base
+    .normalize('NFKD')
+    .replace(/[^a-zA-Z0-9_-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .toLowerCase()
+
+  return safe || 'image'
 }
 
 const auditLog = ({ action, resource, id, actor }) => {
@@ -349,7 +387,7 @@ const loginLimiter = rateLimit({
 
 app.use(apiLimiter)
 app.use(cookieParser())
-app.use(express.json({ limit: '250kb' }))
+app.use(express.json({ limit: '10mb' }))
 
 app.get('/api/health', (_req, res) => {
   return res.json({ ok: true })
@@ -447,6 +485,65 @@ app.post('/api/admin/auth/logout', (req, res) => {
   clearRefreshCookie(res)
   auditLog({ action: 'logout', resource: 'auth', id: 'session', actor: 'admin' })
   return res.json({ ok: true })
+})
+
+app.post('/api/admin/assets/upload', authenticate, async (req, res) => {
+  const parsed = assetUploadSchema.safeParse(req.body)
+
+  if (!parsed.success) {
+    return res.status(400).json({ message: issueMessage(parsed.error) })
+  }
+
+  const { filename, dataUrl } = parsed.data
+  const match = /^data:([^;]+);base64,([A-Za-z0-9+/=]+)$/.exec(dataUrl)
+
+  if (!match) {
+    return res.status(400).json({ message: 'Некорректный формат dataUrl' })
+  }
+
+  const mimeType = match[1].toLowerCase()
+  const encoded = match[2]
+  const extension = allowedImageTypes.get(mimeType)
+
+  if (!extension) {
+    return res.status(400).json({ message: 'Поддерживаются только JPG, PNG, WEBP, AVIF, GIF' })
+  }
+
+  let buffer
+  try {
+    buffer = Buffer.from(encoded, 'base64')
+  } catch {
+    return res.status(400).json({ message: 'Не удалось декодировать изображение' })
+  }
+
+  if (!buffer.length) {
+    return res.status(400).json({ message: 'Файл пустой' })
+  }
+
+  const maxBytes = 6 * 1024 * 1024
+  if (buffer.length > maxBytes) {
+    return res.status(413).json({ message: 'Размер файла превышает 6MB' })
+  }
+
+  await mkdir(uploadsDirPath, { recursive: true })
+
+  const safeName = sanitizeBaseName(filename)
+  const uniqueName = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}-${safeName}.${extension}`
+  const fullPath = path.resolve(uploadsDirPath, uniqueName)
+  await writeBinaryFile(fullPath, buffer)
+
+  auditLog({
+    action: 'upload',
+    resource: 'assets',
+    id: uniqueName,
+    actor: req.admin?.username ?? 'admin',
+  })
+
+  return res.status(201).json({
+    url: `/uploads/${uniqueName}`,
+    size: buffer.length,
+    type: mimeType,
+  })
 })
 
 app.get('/api/public/projects', async (_req, res) => {

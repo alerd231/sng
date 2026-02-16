@@ -19,10 +19,10 @@ const legalNavigation = [
 ]
 
 const mobileContacts = {
-  phoneLabel: '+7 (843) 200-00-00',
-  phoneHref: 'tel:+78432000000',
-  emailLabel: 'info@stroineftegaz.ru',
-  emailHref: 'mailto:info@stroineftegaz.ru',
+  phoneLabel: '+7 (843) 250-87-30',
+  phoneHref: 'tel:+78432508730',
+  emailLabel: 'info@sng16.ru',
+  emailHref: 'mailto:info@sng16.ru',
 }
 
 const navLinkClassName = ({ isActive }: { isActive: boolean }) =>
@@ -66,11 +66,19 @@ export const AppShell = () => {
 
       <header className="sticky top-0 z-50 border-b border-white/15 bg-graphite/95 backdrop-blur">
         <Container className="flex h-16 items-center justify-between gap-4 sm:h-20 sm:gap-6">
-          <Link to="/" onClick={() => setMobileMenuOpen(false)} className="space-y-1">
-            <span className="caption block text-white/50">ООО</span>
-            <span className="font-heading text-sm font-semibold tracking-[0.14em] text-white sm:text-lg sm:tracking-[0.16em]">
-              СТРОЙНЕФТЕГАЗ
-            </span>
+          <Link
+            to="/"
+            onClick={() => setMobileMenuOpen(false)}
+            className="inline-flex items-center"
+            aria-label="СтройНефтеГаз"
+          >
+            <img
+              src="/images/logo.svg"
+              alt="СтройНефтеГаз"
+              className="h-8 w-auto sm:h-10"
+              loading="eager"
+              decoding="async"
+            />
           </Link>
 
           <nav className="hidden items-center gap-6 lg:flex" aria-label="Основная навигация">

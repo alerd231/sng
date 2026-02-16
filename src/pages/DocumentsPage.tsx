@@ -77,24 +77,6 @@ export const DocumentsPage = () => {
 
       <section className="bg-canvas py-10 text-ink sm:py-12 lg:py-16">
         <Container>
-          <Reveal>
-            <div className="mb-7 grid gap-3 md:mb-8 md:grid-cols-2">
-              <img
-                src="/images/object-grs.png"
-                alt="Газораспределительный объект"
-                className="h-32 w-full border border-ink/15 object-cover sm:h-40"
-                loading="lazy"
-                decoding="async"
-              />
-              <img
-                src="/images/object-grs.png"
-                alt="Объект систем безопасности"
-                className="h-32 w-full border border-ink/15 object-cover sm:h-40"
-                loading="lazy"
-                decoding="async"
-              />
-            </div>
-          </Reveal>
 
           <Reveal>
             <FiltersBar onReset={() => {

@@ -35,7 +35,7 @@ export const ConsentPage = () => (
             </p>
             <p>
               Согласие действует до момента его отзыва путем направления уведомления на
-              адрес info@stroineftegaz.ru.
+              адрес info@sng16.ru.
             </p>
           </div>
         </Reveal>

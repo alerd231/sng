@@ -25,6 +25,24 @@ const parseResponseMessage = async (response: Response) => {
   }
 }
 
+const readFileAsDataUrl = (file: File) => (
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader()
+
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result)
+        return
+      }
+
+      reject(new Error('Не удалось прочитать файл'))
+    }
+
+    reader.onerror = () => reject(new Error('Не удалось прочитать файл'))
+    reader.readAsDataURL(file)
+  })
+)
+
 const createProjectTemplate = (): Project => {
   const id = `project-${crypto.randomUUID().slice(0, 8)}`
   const slug = id
@@ -133,6 +151,10 @@ export const AdminDashboardPage = () => {
   const [editorValue, setEditorValue] = useState('')
   const [statusMessage, setStatusMessage] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
+  const [uploadingImage, setUploadingImage] = useState(false)
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null)
+  const [selectedImagePreview, setSelectedImagePreview] = useState('')
+  const [uploadedImageUrl, setUploadedImageUrl] = useState('')
 
   const currentResourceMeta = useMemo(
     () => resources.find((item) => item.key === resource) ?? resources[0],
@@ -190,7 +212,24 @@ export const AdminDashboardPage = () => {
     setMode('create')
     setSelectedId('')
     setEditorValue(JSON.stringify(template, null, 2))
+    setSelectedImageFile(null)
+    setSelectedImagePreview('')
+    setUploadedImageUrl('')
   }, [resource])
+
+  useEffect(() => {
+    if (!selectedImageFile) {
+      setSelectedImagePreview('')
+      return
+    }
+
+    const objectUrl = URL.createObjectURL(selectedImageFile)
+    setSelectedImagePreview(objectUrl)
+
+    return () => {
+      URL.revokeObjectURL(objectUrl)
+    }
+  }, [selectedImageFile])
 
   const handleSelect = (item: ResourceItem) => {
     setMode('edit')
@@ -287,6 +326,96 @@ export const AdminDashboardPage = () => {
       setErrorMessage(deleteError instanceof Error ? deleteError.message : 'Ошибка удаления')
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleImageUpload = async () => {
+    if (!selectedImageFile) {
+      setErrorMessage('Выберите изображение для загрузки')
+      return
+    }
+
+    if (!selectedImageFile.type.startsWith('image/')) {
+      setErrorMessage('Можно загружать только изображения')
+      return
+    }
+
+    const maxBytes = 6 * 1024 * 1024
+    if (selectedImageFile.size > maxBytes) {
+      setErrorMessage('Размер изображения не должен превышать 6MB')
+      return
+    }
+
+    setUploadingImage(true)
+    setStatusMessage('')
+    setErrorMessage('')
+
+    try {
+      const dataUrl = await readFileAsDataUrl(selectedImageFile)
+      const response = await authFetch('/api/admin/assets/upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          filename: selectedImageFile.name,
+          dataUrl,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error(await parseResponseMessage(response))
+      }
+
+      const payload = await response.json() as { url?: string }
+
+      if (!payload.url || typeof payload.url !== 'string') {
+        throw new Error('Сервер не вернул URL изображения')
+      }
+
+      setUploadedImageUrl(payload.url)
+      setStatusMessage('Изображение загружено')
+    } catch (uploadError) {
+      setErrorMessage(uploadError instanceof Error ? uploadError.message : 'Ошибка загрузки изображения')
+    } finally {
+      setUploadingImage(false)
+    }
+  }
+
+  const applyUploadedUrlToJson = (target: 'projectHero' | 'projectGallery' | 'documentUrl') => {
+    if (!uploadedImageUrl) {
+      setErrorMessage('Сначала загрузите изображение')
+      return
+    }
+
+    try {
+      const parsed = JSON.parse(editorValue) as Record<string, unknown>
+
+      if (target === 'projectHero' && resource === 'projects') {
+        parsed.heroImage = uploadedImageUrl
+      }
+
+      if (target === 'projectGallery' && resource === 'projects') {
+        const gallery = Array.isArray(parsed.gallery)
+          ? parsed.gallery.filter((item): item is string => typeof item === 'string')
+          : []
+
+        if (!gallery.includes(uploadedImageUrl)) {
+          gallery.push(uploadedImageUrl)
+        }
+
+        parsed.gallery = gallery
+      }
+
+      if (target === 'documentUrl' && resource === 'documents') {
+        parsed.url = uploadedImageUrl
+      }
+
+      setEditorValue(JSON.stringify(parsed, null, 2))
+      setStatusMessage('URL изображения добавлен в JSON')
+      setErrorMessage('')
+    } catch {
+      setErrorMessage('Текущий JSON содержит ошибки. Исправьте формат перед подстановкой URL.')
     }
   }
 
@@ -415,6 +544,104 @@ export const AdminDashboardPage = () => {
                     Удалить
                   </Button>
                 </div>
+              </div>
+
+              <div className="mt-4 border border-white/15 bg-white/[0.02] p-3">
+                <p className="caption text-white/55">Загрузка фото</p>
+                <div className="mt-3 grid gap-3 md:grid-cols-[1fr_auto] md:items-start">
+                  <div>
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp,image/avif,image/gif"
+                      onChange={(event) => {
+                        const file = event.currentTarget.files?.[0] ?? null
+                        setSelectedImageFile(file)
+                      }}
+                      className="block w-full text-xs text-white/80 file:mr-3 file:cursor-pointer file:border file:border-white/25 file:bg-white/5 file:px-3 file:py-2 file:text-[0.62rem] file:uppercase file:tracking-[0.14em] file:text-white hover:file:border-white/45"
+                    />
+                    <p className="mt-2 text-xs text-white/50">
+                      Допустимые форматы: JPG, PNG, WEBP, AVIF, GIF. До 6MB.
+                    </p>
+                  </div>
+
+                  <Button
+                    type="button"
+                    dark
+                    onClick={handleImageUpload}
+                    disabled={uploadingImage || !selectedImageFile}
+                    className="h-10"
+                  >
+                    {uploadingImage ? 'Загрузка...' : 'Загрузить фото'}
+                  </Button>
+                </div>
+
+                {(selectedImagePreview || uploadedImageUrl) ? (
+                  <div className="mt-3 grid gap-3 md:grid-cols-[180px_1fr]">
+                    <div className="border border-white/20 bg-black/30 p-1">
+                      {selectedImagePreview ? (
+                        <img
+                          src={selectedImagePreview}
+                          alt="Предпросмотр выбранного изображения"
+                          className="h-28 w-full object-cover"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      ) : (
+                        <div className="flex h-28 items-center justify-center text-xs text-white/45">
+                          Нет предпросмотра
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <p className="text-xs text-white/65">
+                        URL: {uploadedImageUrl || 'не загружено'}
+                      </p>
+                      {uploadedImageUrl ? (
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            dark
+                            onClick={() => void navigator.clipboard.writeText(uploadedImageUrl)}
+                          >
+                            Копировать URL
+                          </Button>
+                          {resource === 'projects' ? (
+                            <>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                dark
+                                onClick={() => applyUploadedUrlToJson('projectHero')}
+                              >
+                                В heroImage
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                dark
+                                onClick={() => applyUploadedUrlToJson('projectGallery')}
+                              >
+                                В gallery
+                              </Button>
+                            </>
+                          ) : null}
+                          {resource === 'documents' ? (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              dark
+                              onClick={() => applyUploadedUrlToJson('documentUrl')}
+                            >
+                              В поле url
+                            </Button>
+                          ) : null}
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                ) : null}
               </div>
 
               <textarea

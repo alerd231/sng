@@ -39,7 +39,7 @@ export const PolicyPage = () => (
             </p>
             <p>
               По вопросам обработки данных можно обратиться по адресу
-              info@stroineftegaz.ru.
+              info@sng16.ru.
             </p>
           </div>
         </Reveal>

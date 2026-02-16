@@ -53,7 +53,9 @@ Admin API работает на `http://localhost:8787` и проксирует�
 - `ADMIN_PASSWORD_HASH` (рекомендуется)
 - `ADMIN_JWT_SECRET`
 - `ADMIN_REFRESH_SECRET`
-- `KV_REST_API_URL` и `KV_REST_API_TOKEN` (для persistent CRUD на Vercel)
+- Redis/KV переменные (для persistent CRUD на Vercel):
+  - `KV_REST_API_URL` и `KV_REST_API_TOKEN`
+  - или `UPSTASH_REDIS_REST_URL` и `UPSTASH_REDIS_REST_TOKEN`
 
 Для dev можно использовать `ADMIN_PASSWORD`, но для production нужно перейти на `ADMIN_PASSWORD_HASH`.
 
@@ -62,7 +64,7 @@ Admin API работает на `http://localhost:8787` и проксирует�
 Vercel выполняет serverless-функции в read-only окружении для файлов проекта, поэтому запись в `src/data/*.json` не персистентна.
 
 В проекте включена поддержка KV:
-- если заданы `KV_REST_API_URL` и `KV_REST_API_TOKEN`, CRUD использует KV (данные сохраняются);
+- если заданы `KV_REST_API_URL` + `KV_REST_API_TOKEN` или `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN`, CRUD использует KV/Redis (данные сохраняются);
 - если переменные не заданы, используется локальный JSON-режим (подходит для local dev).
 
 Рекомендуется в Vercel подключить Redis-интеграцию (Upstash/Vercel Marketplace), после чего добавить переменные `KV_REST_API_URL` и `KV_REST_API_TOKEN` в Project Settings -> Environment Variables.

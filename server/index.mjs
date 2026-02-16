@@ -9,7 +9,7 @@ import express from 'express'
 import rateLimit from 'express-rate-limit'
 import helmet from 'helmet'
 import jwt from 'jsonwebtoken'
-import { kv } from '@vercel/kv'
+import { createClient } from '@vercel/kv'
 import { z } from 'zod'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -63,7 +63,10 @@ const projectsPath = path.resolve(rootDir, 'src/data/projects.json')
 const vacanciesPath = path.resolve(rootDir, 'src/data/vacancies.json')
 const documentsPath = path.resolve(rootDir, 'src/data/documents.json')
 const uploadsDirPath = path.resolve(rootDir, 'public/uploads')
-const hasKvStorage = Boolean(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN)
+const kvUrl = process.env.KV_REST_API_URL ?? process.env.UPSTASH_REDIS_REST_URL ?? ''
+const kvToken = process.env.KV_REST_API_TOKEN ?? process.env.UPSTASH_REDIS_REST_TOKEN ?? ''
+const hasKvStorage = Boolean(kvUrl && kvToken)
+const kvClient = hasKvStorage ? createClient({ url: kvUrl, token: kvToken }) : null
 
 const runtimeSessions = new Map()
 
@@ -227,7 +230,11 @@ const readCollection = async ({ filePath, label, storageKey }) => {
   }
 
   try {
-    const payload = await kv.get(storageKey)
+    if (!kvClient) {
+      throw new Error('KV_UNAVAILABLE')
+    }
+
+    const payload = await kvClient.get(storageKey)
 
     if (Array.isArray(payload)) {
       return payload
@@ -235,7 +242,7 @@ const readCollection = async ({ filePath, label, storageKey }) => {
 
     if (payload === null) {
       const initialData = await readJsonArray(filePath, label)
-      await kv.set(storageKey, initialData)
+      await kvClient.set(storageKey, initialData)
       return initialData
     }
 
@@ -264,7 +271,11 @@ const writeCollection = async ({ filePath, storageKey }, value) => {
   }
 
   try {
-    await kv.set(storageKey, value)
+    if (!kvClient) {
+      throw new Error('KV_UNAVAILABLE')
+    }
+
+    await kvClient.set(storageKey, value)
   } catch {
     throw new Error('KV_UNAVAILABLE')
   }

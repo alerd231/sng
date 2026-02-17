@@ -93,13 +93,30 @@ export const CompetenciesPage = () => {
           {relatedProjects.map((project, index) => (
             <Reveal key={project.id} delay={index * 0.07}>
               <Card dark className="h-full p-0">
-                <Link to={`/projects/${project.slug}`} className="block p-6">
-                  <p className="caption text-white/50">{project.year}</p>
-                  <h3 className="mt-3 text-lg font-semibold leading-tight">{project.title}</h3>
-                  <p className="mt-3 text-sm leading-relaxed text-white/72">{project.excerpt}</p>
-                  <div className="mt-5 flex items-center justify-between text-[0.62rem] uppercase tracking-[0.2em] text-white/55">
-                    <span>{project.objectType}</span>
-                    <span className="text-accent">Открыть →</span>
+                <Link to={`/projects/${project.slug}`} className="flex h-full flex-col">
+                  <div className="relative h-44 overflow-hidden sm:h-48">
+                    <img
+                      src={project.heroImage || project.gallery[0] || '/images/object-grs.png'}
+                      alt={project.title}
+                      className="h-full w-full object-cover transition duration-500 ease-smooth group-hover:scale-[1.03]"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-black/30" />
+                  </div>
+
+                  <div className="flex flex-1 flex-col p-5 sm:p-6">
+                    <p className="caption text-white/50">{project.year}</p>
+                    <h3 className="mt-3 text-lg font-semibold leading-tight">{project.title}</h3>
+                    <p className="mt-3 text-sm leading-relaxed text-white/72">
+                      {project.excerpt}
+                    </p>
+                    <div className="mt-auto pt-5">
+                      <div className="flex items-center justify-between text-[0.62rem] uppercase tracking-[0.2em] text-white/55">
+                        <span>{project.objectType}</span>
+                        <span className="text-accent">Открыть →</span>
+                      </div>
+                    </div>
                   </div>
                 </Link>
               </Card>

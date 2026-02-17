@@ -85,7 +85,7 @@ export const AboutPage = () => (
     <section className="bg-canvas py-10 text-ink sm:py-12">
       <Container>
         <img
-          src="/images/object-grs.png"
+          src="/images/about.png"
           alt="Инженерный профиль компании"
           className="h-[32vh] min-h-[220px] w-full border border-ink/15 object-cover sm:h-[36vh] sm:min-h-[260px]"
           loading="lazy"

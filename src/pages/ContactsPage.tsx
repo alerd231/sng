@@ -155,14 +155,8 @@ export const ContactsPage = () => (
           <div className="mt-5 space-y-2 text-sm text-ink">
             <p>
               Телефон:{' '}
-              <a href="tel:+78432508730" className="transition-colors hover:text-accent">
-                +7 (843) 250-87-30
-              </a>
-            </p>
-            <p>
-              Телефон:{' '}
-              <a href="tel:+79662508730" className="transition-colors hover:text-accent">
-                +7 (966) 250-87-30
+              <a href="tel:+79969087730" className="transition-colors hover:text-accent">
+                +7 (996) 908-77-30
               </a>
             </p>
             <p>
@@ -177,13 +171,14 @@ export const ContactsPage = () => (
           </Button>
         </Card>
 
-        <Card className="p-0">
-          <img
-            src="/images/object-grs.png"
-            alt="Локация офиса"
-            className="h-full min-h-[280px] w-full object-cover"
+        <Card className="overflow-hidden p-0">
+          <iframe
+            title="Карта офиса: г. Казань, ул. Родины, 7/1, оф. 35"
+            src="https://yandex.ru/map-widget/v1/?z=16&text=%D0%B3.%20%D0%9A%D0%B0%D0%B7%D0%B0%D0%BD%D1%8C%2C%20%D1%83%D0%BB.%20%D0%A0%D0%BE%D0%B4%D0%B8%D0%BD%D1%8B%2C%207%2F1%2C%20%D0%BE%D1%84.%2035"
+            className="h-full min-h-[280px] w-full border-0"
             loading="lazy"
-            decoding="async"
+            referrerPolicy="no-referrer-when-downgrade"
+            allowFullScreen
           />
         </Card>
       </div>

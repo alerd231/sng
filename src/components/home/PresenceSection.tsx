@@ -17,58 +17,76 @@ interface PresenceLocation {
 
 const locations: PresenceLocation[] = [
   {
-    id: 'moscow',
-    region: 'Центральный офис',
-    city: 'Москва',
-    x: '20%',
-    y: '45%',
-    projects: 5,
-    profile: 'Координация проектов и контрактный блок',
+    id: 'vladimir',
+    region: 'Владимирская область',
+    city: 'Владимир',
+    x: '16.5%',
+    y: '47.4%',
+    projects: 1,
+    profile: 'Дооснащение ИТСО площадок КС и узлов охраны.',
   },
   {
-    id: 'kazan',
-    region: 'Операционный контур',
-    city: 'Казань',
-    x: '26%',
-    y: '51%',
-    projects: 9,
-    profile: 'Строительно-монтажные работы и ПНР',
+    id: 'nizhny-novgorod',
+    region: 'Нижегородская область',
+    city: 'Нижний Новгород',
+    x: '20%',
+    y: '48.6%',
+    projects: 3,
+    profile: 'Работы Транснефть Верхняя Волга и подготовке оборудования.',
   },
   {
     id: 'cheboksary',
-    region: 'ИТСО и безопасность',
+    region: 'Чувашская Республика',
     city: 'Чебоксары',
-    x: '33%',
-    y: '57%',
+    x: '23.7%',
+    y: '48.9%',
+    projects: 1,
+    profile: 'Дооснащение ИТСО на объектах Чебоксарского ЛПУ МГ.',
+  },
+  {
+    id: 'kazan',
+    region: 'Республика Татарстан',
+    city: 'Казань',
+   x: '22.8%',
+    y: '51.6%',
+    projects: 11,
+    profile: 'ГРС, ПНР, автоматизация и дорожные проекты М-7.',
+  },
+  {
+    id: 'izhevsk',
+    region: 'Удмуртская Республика',
+    city: 'Ижевск',
+    x: '26.2%',
+    y: '52.8%',
+    projects: 1,
+    profile: 'Техническое перевооружение контуров телемеханизации МН.',
+  },
+  {
+    id: 'perm',
+    region: 'Пермский край',
+    city: 'Пермь',
+    x: '30.8%',
+    y: '52.6%',
     projects: 4,
-    profile: 'Дооснащение ТСО/ИТСО и эксплуатационный мониторинг',
+    profile: 'Монтаж ЛТМ, ИТСО и работы по промышленной инфраструктуре.',
   },
   {
-    id: 'tyumen',
-    region: 'Северный контур',
-    city: 'Тюмень',
-    x: '41%',
-    y: '54%',
-    projects: 7,
-    profile: 'Автоматизация и наладка технологических узлов',
+    id: 'ufa',
+    region: 'Республика Башкортостан',
+    city: 'Уфа',
+    x: '23.9%',
+    y: '55.6%',
+    projects: 1,
+    profile: 'Пусконаладка и автоматизация в зоне и транспорта нефти.',
   },
   {
-    id: 'novy-urengoy',
-    region: 'Ямало-Ненецкий АО',
-    city: 'Новый Уренгой',
-    x: '45%',
-    y: '43%',
-    projects: 6,
-    profile: 'Объекты газовой инфраструктуры и шеф-монтаж',
-  },
-  {
-    id: 'samara',
-    region: 'Транспортная инфраструктура',
-    city: 'Самара',
-    x: '34%',
-    y: '52%',
-    projects: 3,
-    profile: 'Инженерные системы дорожных объектов',
+    id: 'kurgan',
+    region: 'Курганская область',
+    city: 'Курган',
+    x: '30.8%',
+    y: '56.8%',
+    projects: 1,
+    profile: 'Доработка схем энергоснабжения и АСУ ТП на ЛПДС.',
   },
 ]
 
@@ -109,7 +127,11 @@ export const PresenceSection = () => {
                 onMouseEnter={() => setActiveId(location.id)}
                 onFocus={() => setActiveId(location.id)}
                 onClick={() => setActiveId(location.id)}
-                className="group absolute z-20 hidden md:flex"
+                className={`group absolute hidden xl:flex ${
+                  active
+                    ? 'z-[70]'
+                    : 'z-20 hover:z-[65] focus-visible:z-[65]'
+                }`}
                 style={{ left: location.x, top: location.y }}
               >
                 <motion.span
@@ -129,10 +151,10 @@ export const PresenceSection = () => {
                   <span className="h-1.5 w-1.5 rounded-full bg-white" />
                 </span>
                 <span
-                  className={`pointer-events-none absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-nowrap border px-2 py-1 text-[0.55rem] uppercase tracking-[0.14em] backdrop-blur-sm transition ${
+                  className={`pointer-events-none absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-nowrap border px-2 py-1 text-[0.55rem] uppercase tracking-[0.14em] backdrop-blur-sm transition-all duration-200 ${
                     active
-                      ? 'border-accent/80 bg-black/72 text-white'
-                      : 'border-white/25 bg-black/45 text-white/72 group-hover:border-accent/70 group-hover:text-white text-white text-opacity-25'
+                      ? 'border-accent/80 bg-black/72 text-white opacity-100 translate-y-0'
+                      : 'border-white/25 bg-black/45 text-white/78 opacity-0 translate-y-1 group-hover:border-accent/70 group-hover:opacity-100 group-hover:translate-y-0 group-focus-visible:opacity-100 group-focus-visible:translate-y-0'
                   }`}
                 >
                   {location.city}

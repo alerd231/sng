@@ -18,7 +18,7 @@ const slides: HeroSlide[] = [
     title: 'Строительно-монтажные работы',
     subtitle: 'на объектах газораспределительной инфраструктуры',
     note: 'Полный цикл работ с техническим контролем и исполнительной документацией.',
-    image: '/images/slider1.jpg',
+    image: '/images/slider1.png',
     metrics: ['ГРС', 'Шеф-монтаж', 'Технологические узлы'],
   },
   {
@@ -80,11 +80,11 @@ export const MainHeroSlider = () => {
             key={activeSlide.id}
             src={activeSlide.image}
             alt={activeSlide.title}
-            className="h-full w-full object-cover opacity-45"
+            className="h-full w-full object-cover opacity-100"
             loading="eager"
             fetchPriority="high"
             initial={{ opacity: reducedMotion ? 1 : 0.2, scale: reducedMotion ? 1 : 1.02 }}
-            animate={{ opacity: 0.45, scale: 1 }}
+            animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0.15, scale: 1.01 }}
             transition={{ duration: reducedMotion ? 0.01 : 0.75, ease: [0.22, 1, 0.36, 1] }}
           />

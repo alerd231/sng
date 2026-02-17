@@ -14,6 +14,19 @@ const selectClassName =
   'h-12 w-full min-w-0 max-w-full overflow-hidden text-ellipsis whitespace-nowrap border border-ink/20 bg-white px-4 pr-10 text-sm text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:px-5'
 
 const labelClassName = 'flex min-w-0 flex-col gap-3 px-1 sm:px-2'
+const projectHeroFallback = '/images/background-project.webp'
+
+const optimizeProjectImageSrc = (src: string) => {
+  if (src === '/images/background-project.png') {
+    return '/images/background-project.webp'
+  }
+
+  if (src === '/images/object-grs.png') {
+    return projectHeroFallback
+  }
+
+  return src
+}
 
 export const ProjectsPage = () => {
   const { data: projects, error: projectsError } = usePublicProjects()
@@ -86,11 +99,17 @@ export const ProjectsPage = () => {
 
       <section className="relative overflow-hidden border-b border-white/15 bg-frame py-10 text-white sm:py-12 lg:py-16">
         <img
-          src="/images/background-project.png"
+          src="/images/background-project.webp"
           alt="Объекты дорожной инфраструктуры"
           className="absolute inset-0 h-full w-full object-cover opacity-35"
           loading="eager"
           fetchPriority="high"
+          decoding="async"
+          onError={(event) => {
+            const target = event.currentTarget
+            target.onerror = null
+            target.src = '/images/background-project.png'
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-graphite/92 via-graphite/85 to-graphite/78" />
 
@@ -207,11 +226,20 @@ export const ProjectsPage = () => {
                 <Card className="h-full p-0">
                   <Link to={`/projects/${project.slug}`} className="flex h-full flex-col">
                     <img
-                      src={project.heroImage}
+                      src={optimizeProjectImageSrc(project.heroImage)}
                       alt={project.title}
                       className="h-48 w-full object-cover"
                       loading="lazy"
                       decoding="async"
+                      onError={(event) => {
+                        const target = event.currentTarget
+                        if (target.src.endsWith(projectHeroFallback)) {
+                          return
+                        }
+
+                        target.onerror = null
+                        target.src = projectHeroFallback
+                      }}
                     />
                     <div className="flex flex-1 flex-col p-5 sm:p-6">
                       <div className="flex items-center justify-between gap-3">

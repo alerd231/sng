@@ -51,11 +51,17 @@ export const DocumentsPage = () => {
 
       <section className="relative overflow-hidden border-b border-white/15 bg-frame py-10 text-white sm:py-12 lg:py-16">
         <img
-          src="/images/background-document.png"
+          src="/images/background-document.webp"
           alt="Промышленный объект с инженерными системами"
           className="absolute inset-0 h-full w-full object-cover opacity-35"
           loading="eager"
           fetchPriority="high"
+          decoding="async"
+          onError={(event) => {
+            const target = event.currentTarget
+            target.onerror = null
+            target.src = '/images/background-document.png'
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-graphite/92 via-graphite/84 to-graphite/78" />
 

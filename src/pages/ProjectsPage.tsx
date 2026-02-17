@@ -6,23 +6,17 @@ import { Seo } from '../components/seo/Seo'
 import { Breadcrumbs } from '../components/ui/Breadcrumbs'
 import { Card } from '../components/ui/Card'
 import { FiltersBar } from '../components/ui/FiltersBar'
-import { experience } from '../data'
 import { usePublicProjects } from '../hooks/usePublicCollections'
-import { extendProjectsWithExperience } from '../utils/experienceProjects'
 import { uniqueValues } from '../utils/collections'
 import { setParam } from '../utils/searchParams'
 
 const selectClassName =
-  'h-12 border border-ink/20 bg-white px-5 text-sm text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent'
+  'h-12 w-full min-w-0 max-w-full overflow-hidden text-ellipsis whitespace-nowrap border border-ink/20 bg-white px-4 pr-10 text-sm text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:px-5'
 
-const labelClassName = 'flex flex-col gap-3 px-2'
+const labelClassName = 'flex min-w-0 flex-col gap-3 px-1 sm:px-2'
 
 export const ProjectsPage = () => {
   const { data: projects, error: projectsError } = usePublicProjects()
-  const allProjects = useMemo(
-    () => extendProjectsWithExperience(projects, experience),
-    [projects],
-  )
   const [searchParams, setSearchParams] = useSearchParams()
 
   const filters = {
@@ -33,10 +27,10 @@ export const ProjectsPage = () => {
   }
 
   const options = useMemo(() => {
-    const objectTypes = uniqueValues(allProjects.map((project) => project.objectType))
-    const workTypes = uniqueValues(allProjects.flatMap((project) => project.workTypes))
-    const regions = uniqueValues(allProjects.map((project) => project.region))
-    const years = uniqueValues(allProjects.map((project) => String(project.year))).sort(
+    const objectTypes = uniqueValues(projects.map((project) => project.objectType))
+    const workTypes = uniqueValues(projects.flatMap((project) => project.workTypes))
+    const regions = uniqueValues(projects.map((project) => project.region))
+    const years = uniqueValues(projects.map((project) => String(project.year))).sort(
       (left, right) => Number(right) - Number(left),
     )
 
@@ -46,11 +40,11 @@ export const ProjectsPage = () => {
       regions,
       years,
     }
-  }, [allProjects])
+  }, [projects])
 
   const filteredProjects = useMemo(
     () =>
-      allProjects
+      projects
         .filter((project) => {
           if (filters.objectType && project.objectType !== filters.objectType) {
             return false
@@ -71,7 +65,7 @@ export const ProjectsPage = () => {
           return true
         })
         .sort((left, right) => right.year - left.year),
-    [allProjects, filters.objectType, filters.region, filters.workType, filters.year],
+    [filters.objectType, filters.region, filters.workType, filters.year, projects],
   )
 
   const handleFilterChange = (key: string, value: string) => {

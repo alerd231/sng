@@ -16,15 +16,15 @@ export const FiltersBar = ({
 }: FiltersBarProps) => (
   <div
     className={clsx(
-      'border p-6',
+      'overflow-x-hidden border p-4 sm:p-6',
       dark
         ? 'border-white/20 bg-white/5 text-white'
         : 'border-ink/15 bg-white text-ink',
       className,
     )}
   >
-    <div className="grid gap-5 xl:grid-cols-[1fr_auto] xl:items-end">
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">{children}</div>
+    <div className="grid min-w-0 gap-5 xl:grid-cols-[1fr_auto] xl:items-end">
+      <div className="grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-4">{children}</div>
       {onReset ? (
         <button
           type="button"

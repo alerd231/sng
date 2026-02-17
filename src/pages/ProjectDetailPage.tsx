@@ -8,18 +8,13 @@ import { Breadcrumbs } from '../components/ui/Breadcrumbs'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
 import { Lightbox } from '../components/ui/Lightbox'
-import { competencies, experience } from '../data'
+import { competencies } from '../data'
 import { usePublicProjects } from '../hooks/usePublicCollections'
-import { extendProjectsWithExperience } from '../utils/experienceProjects'
 
 export const ProjectDetailPage = () => {
   const { slug } = useParams()
   const { data: projects, loading: projectsLoading } = usePublicProjects()
-  const allProjects = useMemo(
-    () => extendProjectsWithExperience(projects, experience),
-    [projects],
-  )
-  const project = allProjects.find((item) => item.slug === slug)
+  const project = projects.find((item) => item.slug === slug)
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState(0)
 

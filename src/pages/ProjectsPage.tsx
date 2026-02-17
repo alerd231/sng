@@ -239,7 +239,64 @@ export const ProjectsPage = () => {
             ))}
           </div>
 
+          <Reveal className="mt-12 sm:mt-14">
+            <div className="border border-ink/15 bg-white p-4 sm:p-6">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="caption text-muted">Реестр опыта</p>
+                  <h2 className="mt-3 text-xl font-semibold text-ink sm:text-2xl">
+                    Данные из формы «Опыт работ»
+                  </h2>
+                </div>
+                <a
+                  href="/documents/experience-2025.xlsx"
+                  download
+                  className="inline-flex h-11 items-center justify-center border border-ink/20 px-5 text-[0.62rem] uppercase tracking-[0.2em] text-ink transition hover:border-accent hover:text-accent"
+                >
+                  Скачать XLSX
+                </a>
+              </div>
 
+              <div className="mt-5 overflow-x-auto border border-ink/10">
+                <table className="min-w-[980px] w-full border-collapse text-left">
+                  <thead>
+                    <tr className="bg-[#f2f4f7]">
+                      <th className="border-b border-r border-ink/10 px-4 py-3 text-[0.62rem] uppercase tracking-[0.2em] text-muted">
+                        Год
+                      </th>
+                      <th className="border-b border-r border-ink/10 px-4 py-3 text-[0.62rem] uppercase tracking-[0.2em] text-muted">
+                        Заказчик
+                      </th>
+                      <th className="border-b border-r border-ink/10 px-4 py-3 text-[0.62rem] uppercase tracking-[0.2em] text-muted">
+                        Предмет договора / объект
+                      </th>
+                      <th className="border-b border-ink/10 px-4 py-3 text-[0.62rem] uppercase tracking-[0.2em] text-muted">
+                        Виды работ
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {experienceRows.map((row) => (
+                      <tr key={row.id} className="align-top even:bg-[#fafbfc]">
+                        <td className="border-b border-r border-ink/10 px-4 py-3 text-sm font-medium text-ink">
+                          {row.year}
+                        </td>
+                        <td className="border-b border-r border-ink/10 px-4 py-3 text-sm leading-relaxed text-muted">
+                          {row.customer}
+                        </td>
+                        <td className="border-b border-r border-ink/10 px-4 py-3 text-sm leading-relaxed text-ink">
+                          {row.subject}
+                        </td>
+                        <td className="border-b border-ink/10 px-4 py-3 text-sm leading-relaxed text-muted">
+                          {row.work || '—'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </Reveal>
         </Container>
       </section>
     </>

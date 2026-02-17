@@ -18,7 +18,7 @@ const slides: HeroSlide[] = [
     title: 'Строительно-монтажные работы',
     subtitle: 'на объектах газораспределительной инфраструктуры',
     note: 'Полный цикл работ с техническим контролем и исполнительной документацией.',
-    image: '/images/slider1.png',
+    image: '/images/slider1.webp',
     metrics: ['ГРС', 'Шеф-монтаж', 'Технологические узлы'],
   },
   {
@@ -26,7 +26,7 @@ const slides: HeroSlide[] = [
     title: 'Пусконаладка и ввод',
     subtitle: 'инженерных контуров в эксплуатацию',
     note: 'Пошаговые программы ПНР, протоколирование и подтверждение проектных параметров.',
-    image: '/images/slider2.jpg',
+    image: '/images/slider2.webp',
     metrics: ['ПНР', 'Акты и протоколы', 'Сдача по графику'],
   },
   {
@@ -34,12 +34,13 @@ const slides: HeroSlide[] = [
     title: 'Автоматизация АСУ ТП / КИПиА',
     subtitle: 'и интеграция ТСО, ИТСО, диспетчерских систем',
     note: 'Единая архитектура управления, мониторинга и эксплуатационной отчетности.',
-    image: '/images/slider3.jpg',
+    image: '/images/slider3.webp',
     metrics: ['АСУ ТП', 'КИПиА', 'ТСО/ИТСО'],
   },
 ]
 
 const AUTO_SWITCH_MS = 7000
+const IDLE_PRELOAD_DELAY_MS = 200
 
 export const MainHeroSlider = () => {
   const [activeIndex, setActiveIndex] = useState(0)
@@ -60,6 +61,39 @@ export const MainHeroSlider = () => {
     return () => window.clearInterval(timer)
   }, [isPaused])
 
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return
+    }
+
+    const scope = window as Window & {
+      requestIdleCallback?: (
+        callback: IdleRequestCallback,
+        options?: IdleRequestOptions,
+      ) => number
+      cancelIdleCallback?: (handle: number) => void
+    }
+
+    const nextSlide = slides[(activeIndex + 1) % slides.length]
+    const preload = () => {
+      const image = new Image()
+      image.decoding = 'async'
+      image.src = nextSlide.image
+    }
+
+    if (typeof scope.requestIdleCallback === 'function') {
+      const idleId = scope.requestIdleCallback(preload, { timeout: 1500 })
+      return () => {
+        if (typeof scope.cancelIdleCallback === 'function') {
+          scope.cancelIdleCallback(idleId)
+        }
+      }
+    }
+
+    const timer = globalThis.setTimeout(preload, IDLE_PRELOAD_DELAY_MS)
+    return () => globalThis.clearTimeout(timer)
+  }, [activeIndex])
+
   const goTo = (index: number) => {
     const normalized = ((index % slides.length) + slides.length) % slides.length
     setActiveIndex(normalized)
@@ -75,18 +109,27 @@ export const MainHeroSlider = () => {
       onMouseLeave={() => setIsPaused(false)}
     >
       <div className="absolute inset-0">
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="sync" initial={false}>
           <motion.img
             key={activeSlide.id}
             src={activeSlide.image}
             alt={activeSlide.title}
-            className="h-full w-full object-cover opacity-100"
+            className="absolute inset-0 h-full w-full object-cover will-change-transform"
             loading="eager"
-            fetchPriority="high"
-            initial={{ opacity: reducedMotion ? 1 : 0.2, scale: reducedMotion ? 1 : 1.02 }}
+            decoding="async"
+            sizes="100vw"
+            fetchPriority={activeIndex === 0 ? 'high' : 'auto'}
+            initial={{ opacity: reducedMotion ? 1 : 0, scale: reducedMotion ? 1 : 1.035 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0.15, scale: 1.01 }}
-            transition={{ duration: reducedMotion ? 0.01 : 0.75, ease: [0.22, 1, 0.36, 1] }}
+            exit={{ opacity: reducedMotion ? 1 : 0, scale: reducedMotion ? 1 : 1.015 }}
+            transition={
+              reducedMotion
+                ? { duration: 0.01 }
+                : {
+                    opacity: { duration: 1.35, ease: [0.22, 1, 0.36, 1] },
+                    scale: { duration: 1.8, ease: [0.16, 1, 0.3, 1] },
+                  }
+            }
           />
         </AnimatePresence>
       </div>
@@ -99,10 +142,10 @@ export const MainHeroSlider = () => {
         <AnimatePresence mode="wait">
           <motion.div
             key={`${activeSlide.id}-content`}
-            initial={{ opacity: 0, y: reducedMotion ? 0 : 18 }}
+            initial={{ opacity: 0, y: reducedMotion ? 0 : 16 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: reducedMotion ? 0 : -10 }}
-            transition={{ duration: reducedMotion ? 0.01 : 0.6, ease: [0.22, 1, 0.36, 1] }}
+            exit={{ opacity: 0, y: reducedMotion ? 0 : -8 }}
+            transition={{ duration: reducedMotion ? 0.01 : 0.8, ease: [0.22, 1, 0.36, 1] }}
             className="mt-4 grid flex-1 content-start gap-6 lg:mt-6 lg:grid-cols-[1.2fr_0.8fr] lg:gap-8"
           >
             <div>
@@ -188,4 +231,3 @@ export const MainHeroSlider = () => {
     </section>
   )
 }
-

@@ -63,6 +63,7 @@ const refreshCookieName = 'sng_admin_refresh'
 const projectsPath = path.resolve(rootDir, 'src/data/projects.json')
 const vacanciesPath = path.resolve(rootDir, 'src/data/vacancies.json')
 const documentsPath = path.resolve(rootDir, 'src/data/documents.json')
+const experiencePath = path.resolve(rootDir, 'src/data/experience.json')
 const uploadsDirPath = path.resolve(rootDir, 'public/uploads')
 const isServerlessRuntime = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME)
 const blobToken = process.env.BLOB_READ_WRITE_TOKEN ?? ''
@@ -71,6 +72,7 @@ const kvUrl = process.env.KV_REST_API_URL ?? process.env.UPSTASH_REDIS_REST_URL 
 const kvToken = process.env.KV_REST_API_TOKEN ?? process.env.UPSTASH_REDIS_REST_TOKEN ?? ''
 const hasKvStorage = Boolean(kvUrl && kvToken)
 const kvClient = hasKvStorage ? createClient({ url: kvUrl, token: kvToken }) : null
+const projectsStorageKey = 'sng:projects'
 
 const runtimeSessions = new Map()
 
@@ -283,6 +285,254 @@ const writeCollection = async ({ filePath, storageKey }, value) => {
   } catch {
     throw new Error('KV_UNAVAILABLE')
   }
+}
+
+const defaultExperienceProjectImage = '/images/background-project.png'
+const defaultContractorName = 'ООО «СтройНефтеГаз»'
+const defaultInn = '1655282573'
+
+const normalizeSpace = (value) => String(value ?? '').replace(/\s+/g, ' ').trim()
+
+const truncateText = (value, maxLength) => {
+  const normalized = normalizeSpace(value)
+
+  if (normalized.length <= maxLength) {
+    return normalized
+  }
+
+  return `${normalized.slice(0, maxLength - 1).trimEnd()}…`
+}
+
+const toSafeToken = (value, fallback) => {
+  const safe = normalizeSpace(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+
+  return safe || fallback
+}
+
+const extractCustomerName = (customer) => {
+  const [name] = String(customer ?? '').split(',')
+  return normalizeSpace(name || customer || 'Заказчик')
+}
+
+const extractInn = (customer) => String(customer ?? '').match(/\b\d{10}\b/)?.[0] ?? defaultInn
+
+const detectProjectObjectType = (subject, work) => {
+  const source = `${subject} ${work}`.toLowerCase()
+
+  if (source.includes('грс')) return 'ГРС'
+  if (source.includes('гис')) return 'ГИС'
+  if (source.includes('м-7') || source.includes('автомобильной дороги')) return 'Автодорога'
+  if (source.includes('нпс') || source.includes('лпдс') || source.includes('рну')) {
+    return 'Нефтепроводная инфраструктура'
+  }
+  if (source.includes('кс')) return 'Компрессорная станция'
+  if (source.includes('итсо') || source.includes('тсо') || source.includes('охраны')) {
+    return 'ИТСО/ТСО'
+  }
+
+  return 'Промышленный объект'
+}
+
+const detectProjectRegion = (subject) => {
+  const text = String(subject ?? '').toLowerCase()
+
+  if (text.includes('татарстан') || text.includes('казань') || text.includes('альметьев')) {
+    return 'Республика Татарстан'
+  }
+  if (text.includes('чебоксар') || text.includes('чуваш')) return 'Чувашская Республика'
+  if (text.includes('удмурт') || text.includes('увин')) return 'Удмуртская Республика'
+  if (text.includes('перм') || text.includes('чайковск')) return 'Пермский край'
+  if (text.includes('иванов')) return 'Ивановская область'
+  if (text.includes('владимир')) return 'Владимирская область'
+  if (text.includes('нижегород') || text.includes('нижний новгород')) {
+    return 'Нижегородская область'
+  }
+  if (text.includes('марий')) return 'Республика Марий Эл'
+  if (text.includes('башкир') || text.includes('салават') || text.includes('туймаз')) {
+    return 'Республика Башкортостан'
+  }
+  if (text.includes('курган')) return 'Курганская область'
+
+  return 'Регионы РФ'
+}
+
+const detectProjectWorkTypes = (subject, work) => {
+  const source = `${subject} ${work}`.toLowerCase()
+  const workTypes = []
+
+  if (source.includes('пнр') || source.includes('пуско')) workTypes.push('ПНР')
+  if (
+    source.includes('автомат') ||
+    source.includes('асу') ||
+    source.includes('кип') ||
+    source.includes('телемехан')
+  ) {
+    workTypes.push('Автоматизация')
+  }
+  if (source.includes('шеф')) workTypes.push('Шеф-монтаж')
+  if (source.includes('монтаж') || source.includes('строител')) workTypes.push('СМР')
+  if (source.includes('итсо')) workTypes.push('ИТСО')
+  if (source.includes('тсо') || source.includes('сигнализац')) workTypes.push('ТСО')
+
+  if (!workTypes.length) {
+    const firstSegment = normalizeSpace(String(work ?? '').split(',')[0] || '')
+    return [firstSegment || 'Комплекс работ']
+  }
+
+  return [...new Set(workTypes)]
+}
+
+const detectProjectCompetencyIds = (subject, work) => {
+  const source = `${subject} ${work}`.toLowerCase()
+  const competencyIds = []
+
+  if (source.includes('шеф')) competencyIds.push('comp-supervision')
+  if (source.includes('пнр') || source.includes('пуско')) competencyIds.push('comp-commissioning')
+  if (
+    source.includes('автомат') ||
+    source.includes('асу') ||
+    source.includes('кип') ||
+    source.includes('телемехан')
+  ) {
+    competencyIds.push('comp-automation')
+  }
+  if (
+    source.includes('итсо') ||
+    source.includes('тсо') ||
+    source.includes('сигнализац') ||
+    source.includes('охраны')
+  ) {
+    competencyIds.push('comp-security')
+  }
+  if (source.includes('монтаж') || source.includes('строител')) competencyIds.push('comp-construction')
+
+  if (!competencyIds.length) {
+    competencyIds.push('comp-construction')
+  }
+
+  return [...new Set(competencyIds)]
+}
+
+const createProjectFromExperienceRow = (row, index) => {
+  const normalizedRowId = toSafeToken(row?.id, `exp-${index + 1}`)
+  const year = Number.isFinite(Number(row?.year)) ? Number(row.year) : new Date().getFullYear()
+  const subject = normalizeSpace(row?.subject || 'Проект из реестра опыта')
+  const work = normalizeSpace(row?.work || 'Комплекс работ')
+  const customer = normalizeSpace(row?.customer || 'Заказчик')
+  const title = truncateText(subject, 220)
+  const objectType = detectProjectObjectType(subject, work)
+  const workTypes = detectProjectWorkTypes(subject, work)
+  const region = detectProjectRegion(subject)
+  const customerName = truncateText(extractCustomerName(customer), 300)
+
+  return {
+    id: `exp-project-${normalizedRowId}`,
+    slug: `experience-${normalizedRowId}`,
+    year,
+    title,
+    shortTitle: truncateText(workTypes.join(', '), 200),
+    excerpt: truncateText(`Выполнены работы: ${work}. Заказчик: ${customerName}.`, 500),
+    heroImage: defaultExperienceProjectImage,
+    gallery: [defaultExperienceProjectImage],
+    region,
+    objectType,
+    workTypes,
+    passport: {
+      period: String(year),
+      status: 'Завершен',
+      customer: customerName,
+      contractor: defaultContractorName,
+      inn: extractInn(customer),
+      location: truncateText(subject, 260),
+      objectType: truncateText(objectType, 180),
+      workScope: truncateText(work, 280),
+    },
+    tasks: [
+      'Выполнить строительно-монтажные и/или наладочные работы в согласованные сроки.',
+      'Обеспечить соответствие работ техническим требованиям заказчика.',
+      'Подготовить комплект исполнительной и отчетной документации.',
+    ],
+    solutions: [
+      'Сформирован поэтапный план производства работ и технического контроля.',
+      'Организована координация инженерных и производственных служб на площадке.',
+      'Проведены необходимые испытания и верификация параметров.',
+    ],
+    results: [
+      'Работы завершены и переданы заказчику в установленном порядке.',
+      'Подтверждена работоспособность систем по итогам приемо-сдаточных процедур.',
+      'Сформирован комплект материалов для тендерного и эксплуатационного архива.',
+    ],
+    files: [],
+    relatedCompetencyIds: detectProjectCompetencyIds(subject, work),
+  }
+}
+
+const mergeProjectsWithExperience = (projects, experienceRows) => {
+  const generatedProjects = experienceRows.map(createProjectFromExperienceRow)
+  const existingIds = new Set(projects.map((item) => item.id))
+  const existingSlugs = new Set(projects.map((item) => item.slug))
+  const additions = []
+
+  for (const item of generatedProjects) {
+    if (existingIds.has(item.id) || existingSlugs.has(item.slug)) {
+      continue
+    }
+
+    additions.push(item)
+    existingIds.add(item.id)
+    existingSlugs.add(item.slug)
+  }
+
+  if (!additions.length) {
+    return { list: projects, added: 0 }
+  }
+
+  const merged = [...projects, ...additions].sort((left, right) => Number(right.year) - Number(left.year))
+  return { list: merged, added: additions.length }
+}
+
+const readProjectsCollection = async () => {
+  const list = await readCollection({
+    filePath: projectsPath,
+    label: 'projects.json',
+    storageKey: projectsStorageKey,
+  })
+
+  let experienceRows = []
+
+  try {
+    experienceRows = await readJsonArray(experiencePath, 'experience.json')
+  } catch (error) {
+    console.error('[admin-api] failed to read experience.json', error)
+    return list
+  }
+
+  const { list: mergedList, added } = mergeProjectsWithExperience(list, experienceRows)
+
+  if (!added) {
+    return mergedList
+  }
+
+  try {
+    await writeCollection(
+      { filePath: projectsPath, storageKey: projectsStorageKey },
+      mergedList,
+    )
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === 'READ_ONLY_STORAGE' || error.message === 'KV_UNAVAILABLE')
+    ) {
+      return mergedList
+    }
+
+    throw error
+  }
+
+  return mergedList
 }
 
 const issueMessage = (error) => {
@@ -657,11 +907,7 @@ app.get('/api/public/projects', async (_req, res) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
   res.setHeader('Pragma', 'no-cache')
   res.setHeader('Expires', '0')
-  const list = await readCollection({
-    filePath: projectsPath,
-    label: 'projects.json',
-    storageKey: 'sng:projects',
-  })
+  const list = await readProjectsCollection()
   return res.json(list)
 })
 
@@ -695,13 +941,22 @@ const createCrudHandlers = ({
   storageKey,
   schema,
   uniqueFields = [],
+  readList,
 }) => {
-  app.get(`/api/admin/${key}`, authenticate, async (_req, res) => {
-    const list = await readCollection({
+  const getList = async () => {
+    if (typeof readList === 'function') {
+      return readList()
+    }
+
+    return readCollection({
       filePath,
       label: `${key}.json`,
       storageKey,
     })
+  }
+
+  app.get(`/api/admin/${key}`, authenticate, async (_req, res) => {
+    const list = await getList()
     return res.json(list)
   })
 
@@ -713,11 +968,7 @@ const createCrudHandlers = ({
     }
 
     const nextItem = parsed.data
-    const list = await readCollection({
-      filePath,
-      label: `${key}.json`,
-      storageKey,
-    })
+    const list = await getList()
 
     if (list.some((item) => item.id === nextItem.id)) {
       return res.status(409).json({ message: `Элемент с id=${nextItem.id} уже существует` })
@@ -749,11 +1000,7 @@ const createCrudHandlers = ({
       return res.status(400).json({ message: 'ID в URL и payload должен совпадать' })
     }
 
-    const list = await readCollection({
-      filePath,
-      label: `${key}.json`,
-      storageKey,
-    })
+    const list = await getList()
     const index = list.findIndex((item) => item.id === id)
 
     if (index === -1) {
@@ -775,11 +1022,7 @@ const createCrudHandlers = ({
 
   app.delete(`/api/admin/${key}/:id`, authenticate, async (req, res) => {
     const id = String(req.params.id ?? '')
-    const list = await readCollection({
-      filePath,
-      label: `${key}.json`,
-      storageKey,
-    })
+    const list = await getList()
     const index = list.findIndex((item) => item.id === id)
 
     if (index === -1) {
@@ -796,9 +1039,10 @@ const createCrudHandlers = ({
 createCrudHandlers({
   key: 'projects',
   filePath: projectsPath,
-  storageKey: 'sng:projects',
+  storageKey: projectsStorageKey,
   schema: projectSchema,
   uniqueFields: ['slug'],
+  readList: readProjectsCollection,
 })
 
 createCrudHandlers({

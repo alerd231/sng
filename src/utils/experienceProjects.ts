@@ -181,7 +181,19 @@ export const extendProjectsWithExperience = (
   experienceRows: ExperienceItem[],
 ) => {
   const generatedProjects = experienceRows.map(createProjectFromExperience)
+  const existingIds = new Set(projects.map((item) => item.id))
+  const existingSlugs = new Set(projects.map((item) => item.slug))
+  const additions: Project[] = []
 
-  return [...projects, ...generatedProjects].sort((left, right) => right.year - left.year)
+  for (const project of generatedProjects) {
+    if (existingIds.has(project.id) || existingSlugs.has(project.slug)) {
+      continue
+    }
+
+    existingIds.add(project.id)
+    existingSlugs.add(project.slug)
+    additions.push(project)
+  }
+
+  return [...projects, ...additions].sort((left, right) => right.year - left.year)
 }
-

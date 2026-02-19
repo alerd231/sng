@@ -124,7 +124,7 @@ export const ProjectsPage = () => {
             </h1>
             <p className="mt-4 max-w-3xl text-sm leading-relaxed text-white/72">
               Подборка реализованных проектов по строительству, ПНР, автоматизации и
-              ТСО/ИТСО.
+              КИТСО/САЗ.
             </p>
           </Reveal>
         </Container>

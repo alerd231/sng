@@ -19,8 +19,8 @@ const legalNavigation = [
 ]
 
 const mobileContacts = {
-  phoneLabel: '+7 (843) 250-87-30',
-  phoneHref: 'tel:+78432508730',
+  phoneLabel: '+7 (996) 908-77-30',
+  phoneHref: 'tel:+79669087730',
   emailLabel: 'info@sng16.ru',
   emailHref: 'mailto:info@sng16.ru',
 }
@@ -180,8 +180,8 @@ export const AppShell = () => {
             <div className="space-y-3 lg:col-span-5">
               <p className="caption text-white/55">Профиль</p>
               <p className="max-w-lg text-sm leading-relaxed text-white/70">
-                Строительство, пусконаладка, автоматизация и внедрение ТСО/ИТСО для
-                объектов промышленной инфраструктуры.
+                Строительство, пусконаладка, автоматизация, КИТСО/САЗ, электромонтаж
+                и ЭХЗ для объектов промышленной инфраструктуры.
               </p>
             </div>
             <div className="lg:col-span-4">

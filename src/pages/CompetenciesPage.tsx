@@ -11,9 +11,8 @@ import { usePublicProjects } from '../hooks/usePublicCollections'
 
 const groupLabels = {
   construction: 'Строительно-монтажный блок',
-  commissioning: 'Пусконаладка',
   automation: 'Автоматизация',
-  security: 'ТСО/ИТСО',
+  security: 'КИТСО/САЗ',
 }
 
 const groupedCompetencies = Object.entries(groupLabels).map(([group, label]) => ({
@@ -53,7 +52,7 @@ export const CompetenciesPage = () => {
     <>
       <Seo
         title="Компетенции"
-        description="Ключевые компетенции СтройНефтеГаз: СМР, ПНР, автоматизация и ТСО/ИТСО."
+        description="Ключевые компетенции СтройНефтеГаз: СМР, ПНР, автоматизация, КИТСО/САЗ, электромонтаж и ЭХЗ."
         canonicalPath="/competencies"
       />
 

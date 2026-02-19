@@ -18,7 +18,7 @@ const requisites: Array<{ label: string; value: ReactNode }> = [
   },
   {
     label: 'Юридический адрес',
-    value: '420021, г. Казань, ул. Габдуллы Тукая, зд. 91',
+    value: '420021, г. Казань, ул. Габдуллы Тукая, д. 91, оф. 5',
   },
   {
     label: 'Фактический (почтовый) адрес',
@@ -27,20 +27,9 @@ const requisites: Array<{ label: string; value: ReactNode }> = [
   {
     label: 'Адрес электронной почты',
     value: (
-      <div className="space-y-1">
-        <p>
-          <a href="mailto:info@sng16.ru" className="transition-colors hover:text-accent">
-            info@sng16.ru
-          </a>{' '}
-          - бухгалтерия и секретариат
-        </p>
-        <p>
-          <a href="mailto:plotnikovaa@sng16.ru" className="transition-colors hover:text-accent">
-            plotnikovaa@sng16.ru
-          </a>{' '}
-          - Плотников Андрей Александрович
-        </p>
-      </div>
+      <a href="mailto:info@sng16.ru" className="transition-colors hover:text-accent">
+        info@sng16.ru
+      </a>
     ),
   },
   {
@@ -63,12 +52,6 @@ const requisites: Array<{ label: string; value: ReactNode }> = [
           </a>
         </p>
         <p>
-          тел:{' '}
-          <a href="tel:+78432508730" className="transition-colors hover:text-accent">
-            +7 (843) 250-87-30
-          </a>
-        </p>
-        <p>
           <a href="mailto:sst.psa@gmail.com" className="transition-colors hover:text-accent">
             sst.psa@gmail.com
           </a>
@@ -85,12 +68,6 @@ const requisites: Array<{ label: string; value: ReactNode }> = [
           тел:{' '}
           <a href="tel:+79662507730" className="transition-colors hover:text-accent">
             +7 (966) 250-77-30
-          </a>
-        </p>
-        <p>
-          тел:{' '}
-          <a href="tel:+78432507730" className="transition-colors hover:text-accent">
-            +7 (843) 250-77-30
           </a>
         </p>
       </div>

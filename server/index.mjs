@@ -192,7 +192,14 @@ const defaultSiteSettings = {
   },
 }
 
-const siteSettingsPartialSchema = siteSettingsSchema.deepPartial()
+const siteSettingsPartialSchema = z.object({
+  careers: z.object({
+    vacanciesEnabled: z.boolean().optional(),
+    attractionTitle: z.string().max(200).optional(),
+    attractionText: z.string().max(3000).optional(),
+    attractionHighlights: z.array(z.string().max(180)).max(12).optional(),
+  }).optional(),
+})
 
 const loginSchema = z.object({
   username: z.string().min(1).max(120),

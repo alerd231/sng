@@ -108,3 +108,14 @@ export interface Vacancy {
 }
 
 export type VacancySort = 'date_desc' | 'salary_desc' | 'priority'
+
+export interface CareersPageSettings {
+  vacanciesEnabled: boolean
+  attractionTitle: string
+  attractionText: string
+  attractionHighlights: string[]
+}
+
+export interface SiteSettings {
+  careers: CareersPageSettings
+}

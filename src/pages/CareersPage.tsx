@@ -6,7 +6,7 @@ import { Seo } from '../components/seo/Seo'
 import { Breadcrumbs } from '../components/ui/Breadcrumbs'
 import { Card } from '../components/ui/Card'
 import { FiltersBar } from '../components/ui/FiltersBar'
-import { usePublicVacancies } from '../hooks/usePublicCollections'
+import { usePublicSiteSettings, usePublicVacancies } from '../hooks/usePublicCollections'
 import type { Vacancy, VacancySort } from '../types/models'
 import {
   formatDate,
@@ -42,7 +42,10 @@ const withPinnedFirst = (
 
 export const CareersPage = () => {
   const { data: vacancies, error: vacanciesError } = usePublicVacancies()
+  const { data: siteSettings, error: siteSettingsError } = usePublicSiteSettings()
   const [searchParams, setSearchParams] = useSearchParams()
+  const careersSettings = siteSettings.careers
+  const vacanciesEnabled = careersSettings.vacanciesEnabled
 
   const filters = {
     query: searchParams.get('query') ?? '',
@@ -156,8 +159,9 @@ export const CareersPage = () => {
               Карьера в СтройНефтеГаз
             </h1>
             <p className="mt-4 max-w-3xl text-sm leading-relaxed text-white/72">
-              Подбор вакансий по производственным блокам компании. Закрепленные позиции
-              всегда выводятся в верхней части списка.
+              {vacanciesEnabled
+                ? 'Подбор вакансий по производственным блокам компании. Закрепленные позиции всегда выводятся в верхней части списка.'
+                : 'Вакансии временно закрыты для публикации. При этом мы продолжаем формировать кадровый резерв и принимаем резюме в приоритетные направления.'}
             </p>
           </Reveal>
         </Container>
@@ -170,178 +174,223 @@ export const CareersPage = () => {
               Отображаются локальные данные. API: {vacanciesError}
             </p>
           ) : null}
+          {siteSettingsError ? (
+            <p className="caption mb-4 text-muted">
+              Настройки страницы загружены из локальных данных. API: {siteSettingsError}
+            </p>
+          ) : null}
 
+          {vacanciesEnabled ? (
+            <>
+              <Reveal>
+                <FiltersBar onReset={resetFilters}>
+                  <label className={`${labelClassName} md:col-span-2 xl:col-span-2`}>
+                    <span className="caption text-muted">Поиск</span>
+                    <input
+                      value={filters.query}
+                      onChange={(event) =>
+                        handleChange('query', event.currentTarget.value)
+                      }
+                      className={inputClassName}
+                      placeholder="Должность или ключевое слово"
+                      aria-label="Поиск по вакансиям"
+                    />
+                  </label>
 
-          <Reveal>
-            <FiltersBar onReset={resetFilters}>
-              <label className={`${labelClassName} md:col-span-2 xl:col-span-2`}>
-                <span className="caption text-muted">Поиск</span>
-                <input
-                  value={filters.query}
-                  onChange={(event) =>
-                    handleChange('query', event.currentTarget.value)
-                  }
-                  className={inputClassName}
-                  placeholder="Должность или ключевое слово"
-                  aria-label="Поиск по вакансиям"
-                />
-              </label>
+                  <label className={labelClassName}>
+                    <span className="caption text-muted">Город</span>
+                    <select
+                      value={filters.city}
+                      onChange={(event) => handleChange('city', event.currentTarget.value)}
+                      className={selectClassName}
+                      aria-label="Фильтр по городу"
+                    >
+                      <option value="">Все</option>
+                      {options.cities.map((city) => (
+                        <option key={city} value={city}>
+                          {city}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
 
-              <label className={labelClassName}>
-                <span className="caption text-muted">Город</span>
-                <select
-                  value={filters.city}
-                  onChange={(event) => handleChange('city', event.currentTarget.value)}
-                  className={selectClassName}
-                  aria-label="Фильтр по городу"
-                >
-                  <option value="">Все</option>
-                  {options.cities.map((city) => (
-                    <option key={city} value={city}>
-                      {city}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                  <label className={labelClassName}>
+                    <span className="caption text-muted">Отдел</span>
+                    <select
+                      value={filters.dept}
+                      onChange={(event) => handleChange('dept', event.currentTarget.value)}
+                      className={selectClassName}
+                      aria-label="Фильтр по отделу"
+                    >
+                      <option value="">Все</option>
+                      {options.depts.map((dept) => (
+                        <option key={dept} value={dept}>
+                          {dept}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
 
-              <label className={labelClassName}>
-                <span className="caption text-muted">Отдел</span>
-                <select
-                  value={filters.dept}
-                  onChange={(event) => handleChange('dept', event.currentTarget.value)}
-                  className={selectClassName}
-                  aria-label="Фильтр по отделу"
-                >
-                  <option value="">Все</option>
-                  {options.depts.map((dept) => (
-                    <option key={dept} value={dept}>
-                      {dept}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                  <label className={labelClassName}>
+                    <span className="caption text-muted">Формат</span>
+                    <select
+                      value={filters.format}
+                      onChange={(event) => handleChange('format', event.currentTarget.value)}
+                      className={selectClassName}
+                      aria-label="Фильтр по формату"
+                    >
+                      <option value="">Все</option>
+                      {options.formats.map((format) => (
+                        <option key={format} value={format}>
+                          {formatVacancyFormat(format)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
 
-              <label className={labelClassName}>
-                <span className="caption text-muted">Формат</span>
-                <select
-                  value={filters.format}
-                  onChange={(event) => handleChange('format', event.currentTarget.value)}
-                  className={selectClassName}
-                  aria-label="Фильтр по формату"
-                >
-                  <option value="">Все</option>
-                  {options.formats.map((format) => (
-                    <option key={format} value={format}>
-                      {formatVacancyFormat(format)}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                  <label className={labelClassName}>
+                    <span className="caption text-muted">Занятость</span>
+                    <select
+                      value={filters.employment}
+                      onChange={(event) =>
+                        handleChange('employment', event.currentTarget.value)
+                      }
+                      className={selectClassName}
+                      aria-label="Фильтр по типу занятости"
+                    >
+                      <option value="">Все</option>
+                      {options.employment.map((employment) => (
+                        <option key={employment} value={employment}>
+                          {formatEmployment(employment)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
 
-              <label className={labelClassName}>
-                <span className="caption text-muted">Занятость</span>
-                <select
-                  value={filters.employment}
-                  onChange={(event) =>
-                    handleChange('employment', event.currentTarget.value)
-                  }
-                  className={selectClassName}
-                  aria-label="Фильтр по типу занятости"
-                >
-                  <option value="">Все</option>
-                  {options.employment.map((employment) => (
-                    <option key={employment} value={employment}>
-                      {formatEmployment(employment)}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                  <label className={labelClassName}>
+                    <span className="caption text-muted">Опыт</span>
+                    <select
+                      value={filters.experience}
+                      onChange={(event) =>
+                        handleChange('experience', event.currentTarget.value)
+                      }
+                      className={selectClassName}
+                      aria-label="Фильтр по опыту"
+                    >
+                      <option value="">Любой</option>
+                      {options.experience.map((experience) => (
+                        <option key={experience} value={experience}>
+                          {formatExperience(experience)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
 
-              <label className={labelClassName}>
-                <span className="caption text-muted">Опыт</span>
-                <select
-                  value={filters.experience}
-                  onChange={(event) =>
-                    handleChange('experience', event.currentTarget.value)
-                  }
-                  className={selectClassName}
-                  aria-label="Фильтр по опыту"
-                >
-                  <option value="">Любой</option>
-                  {options.experience.map((experience) => (
-                    <option key={experience} value={experience}>
-                      {formatExperience(experience)}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className={labelClassName}>
-                <span className="caption text-muted">Сортировка</span>
-                <select
-                  value={filters.sort}
-                  onChange={(event) =>
-                    handleChange('sort', event.currentTarget.value, 'date_desc')
-                  }
-                  className={selectClassName}
-                  aria-label="Сортировка вакансий"
-                >
-                  <option value="date_desc">Сначала новые</option>
-                  <option value="salary_desc">По верхней границе зарплаты</option>
-                  <option value="priority">По приоритету</option>
-                </select>
-              </label>
-            </FiltersBar>
-          </Reveal>
-
-          <Reveal>
-            <div className="mt-7 border-y border-ink/15 py-3 sm:mt-8">
-              <p className="caption text-muted">Найдено: {filteredVacancies.length}</p>
-            </div>
-          </Reveal>
-
-          <div className="mt-5 grid gap-4 sm:mt-6 lg:grid-cols-2">
-            {filteredVacancies.map((vacancy, index) => (
-              <Reveal key={vacancy.id} delay={index * 0.04}>
-                <Link to={`/careers/${vacancy.slug}`} className="block h-full" aria-label={`Открыть вакансию ${vacancy.title}`}>
-                  <Card className="h-full p-0">
-                    <div className="flex h-full flex-col p-5 sm:p-6">
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="caption text-muted">{formatDate(vacancy.postedAt)}</p>
-                        {vacancy.priority ? (
-                          <span className="border border-accent bg-accent px-3 py-1 text-[0.58rem] uppercase tracking-[0.18em] text-white">
-                            Приоритет
-                          </span>
-                        ) : null}
-                      </div>
-
-                      <h2 className="mt-4 text-lg font-semibold leading-tight text-ink sm:text-xl">
-                        {vacancy.title}
-                      </h2>
-
-                      <p className="mt-3 text-sm leading-relaxed text-muted">{vacancy.summary}</p>
-
-                      <div className="mt-5 grid grid-cols-2 gap-2 text-[0.58rem] uppercase tracking-[0.16em] text-muted sm:gap-3 sm:text-[0.62rem]">
-                        <span>{vacancy.city}</span>
-                        <span>{formatVacancyFormat(vacancy.format)}</span>
-                        <span>{formatEmployment(vacancy.employment)}</span>
-                        <span>{formatExperience(vacancy.experience)}</span>
-                      </div>
-
-                      <div className="mt-5 flex items-center justify-between border-t border-ink/10 pt-4">
-                        <p className="text-sm font-semibold text-ink">
-                          {formatSalary(vacancy.salaryFrom, vacancy.salaryTo)}
-                        </p>
-                        <span className="text-[0.58rem] uppercase tracking-[0.2em] text-accent sm:text-[0.62rem]">
-                          Открыть →
-                        </span>
-                      </div>
-                    </div>
-                  </Card>
-                </Link>
+                  <label className={labelClassName}>
+                    <span className="caption text-muted">Сортировка</span>
+                    <select
+                      value={filters.sort}
+                      onChange={(event) =>
+                        handleChange('sort', event.currentTarget.value, 'date_desc')
+                      }
+                      className={selectClassName}
+                      aria-label="Сортировка вакансий"
+                    >
+                      <option value="date_desc">Сначала новые</option>
+                      <option value="salary_desc">По верхней границе зарплаты</option>
+                      <option value="priority">По приоритету</option>
+                    </select>
+                  </label>
+                </FiltersBar>
               </Reveal>
-            ))}
-          </div>
+
+              <Reveal>
+                <div className="mt-7 border-y border-ink/15 py-3 sm:mt-8">
+                  <p className="caption text-muted">Найдено: {filteredVacancies.length}</p>
+                </div>
+              </Reveal>
+
+              {filteredVacancies.length ? (
+                <div className="mt-5 grid gap-4 sm:mt-6 lg:grid-cols-2">
+                  {filteredVacancies.map((vacancy, index) => (
+                    <Reveal key={vacancy.id} delay={index * 0.04}>
+                      <Link to={`/careers/${vacancy.slug}`} className="block h-full" aria-label={`Открыть вакансию ${vacancy.title}`}>
+                        <Card className="h-full p-0">
+                          <div className="flex h-full flex-col p-5 sm:p-6">
+                            <div className="flex items-center justify-between gap-3">
+                              <p className="caption text-muted">{formatDate(vacancy.postedAt)}</p>
+                              {vacancy.priority ? (
+                                <span className="border border-accent bg-accent px-3 py-1 text-[0.58rem] uppercase tracking-[0.18em] text-white">
+                                  Приоритет
+                                </span>
+                              ) : null}
+                            </div>
+
+                            <h2 className="mt-4 text-lg font-semibold leading-tight text-ink sm:text-xl">
+                              {vacancy.title}
+                            </h2>
+
+                            <p className="mt-3 text-sm leading-relaxed text-muted">{vacancy.summary}</p>
+
+                            <div className="mt-5 grid grid-cols-2 gap-2 text-[0.58rem] uppercase tracking-[0.16em] text-muted sm:gap-3 sm:text-[0.62rem]">
+                              <span>{vacancy.city}</span>
+                              <span>{formatVacancyFormat(vacancy.format)}</span>
+                              <span>{formatEmployment(vacancy.employment)}</span>
+                              <span>{formatExperience(vacancy.experience)}</span>
+                            </div>
+
+                            <div className="mt-5 flex items-center justify-between border-t border-ink/10 pt-4">
+                              <p className="text-sm font-semibold text-ink">
+                                {formatSalary(vacancy.salaryFrom, vacancy.salaryTo)}
+                              </p>
+                              <span className="text-[0.58rem] uppercase tracking-[0.2em] text-accent sm:text-[0.62rem]">
+                                Открыть →
+                              </span>
+                            </div>
+                          </div>
+                        </Card>
+                      </Link>
+                    </Reveal>
+                  ))}
+                </div>
+              ) : (
+                <Reveal>
+                  <div className="mt-6 border border-ink/20 bg-white p-6 sm:p-8">
+                    <p className="text-base leading-relaxed text-ink">
+                      На данный момент опубликованных вакансий нет. Вы можете отправить резюме через раздел контактов, и мы свяжемся при открытии профильных позиций.
+                    </p>
+                  </div>
+                </Reveal>
+              )}
+            </>
+          ) : (
+            <Reveal>
+              <div className="mt-2 border border-ink/20 bg-white p-6 sm:p-8 lg:p-10">
+                <p className="caption text-muted">Кадровый резерв</p>
+                <h2 className="mt-3 text-2xl font-semibold leading-tight text-ink sm:text-3xl">
+                  {careersSettings.attractionTitle}
+                </h2>
+                <p className="mt-4 max-w-4xl text-sm leading-relaxed text-muted sm:text-base">
+                  {careersSettings.attractionText}
+                </p>
+
+                <ul className="mt-6 grid gap-3 sm:grid-cols-2">
+                  {careersSettings.attractionHighlights.map((item, index) => (
+                    <li
+                      key={`${item}-${index}`}
+                      className="border border-ink/15 bg-canvas px-4 py-3 text-sm leading-relaxed text-ink"
+                    >
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="mt-6 border-t border-ink/15 pt-4 text-sm text-muted">
+                  Для включения списка вакансий используйте переключатель в админ-панели.
+                </div>
+              </div>
+            </Reveal>
+          )}
         </Container>
       </section>
     </>

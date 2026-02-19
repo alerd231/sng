@@ -64,6 +64,7 @@ const projectsPath = path.resolve(rootDir, 'src/data/projects.json')
 const vacanciesPath = path.resolve(rootDir, 'src/data/vacancies.json')
 const documentsPath = path.resolve(rootDir, 'src/data/documents.json')
 const experiencePath = path.resolve(rootDir, 'src/data/experience.json')
+const siteSettingsPath = path.resolve(rootDir, 'src/data/siteSettings.json')
 const uploadsDirPath = path.resolve(rootDir, 'public/uploads')
 const isServerlessRuntime = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME)
 const blobToken = process.env.BLOB_READ_WRITE_TOKEN ?? ''
@@ -73,6 +74,7 @@ const kvToken = process.env.KV_REST_API_TOKEN ?? process.env.UPSTASH_REDIS_REST_
 const hasKvStorage = Boolean(kvUrl && kvToken)
 const kvClient = hasKvStorage ? createClient({ url: kvUrl, token: kvToken }) : null
 const projectsStorageKey = 'sng:projects'
+const siteSettingsStorageKey = 'sng:site-settings'
 
 const runtimeSessions = new Map()
 
@@ -164,6 +166,34 @@ const documentSchema = z.object({
   url: z.string().min(1).max(500),
 })
 
+const careersSettingsSchema = z.object({
+  vacanciesEnabled: z.boolean(),
+  attractionTitle: z.string().min(3).max(200),
+  attractionText: z.string().min(3).max(3000),
+  attractionHighlights: z.array(z.string().min(2).max(180)).min(1).max(12),
+})
+
+const siteSettingsSchema = z.object({
+  careers: careersSettingsSchema,
+})
+
+const defaultSiteSettings = {
+  careers: {
+    vacanciesEnabled: true,
+    attractionTitle: 'Присоединяйтесь к команде СтройНефтеГаз',
+    attractionText:
+      'Мы формируем кадровый резерв для будущих производственных запусков. Предлагаем конкурентный доход, прозрачные премиальные механики и долгосрочную занятость на инфраструктурных проектах.',
+    attractionHighlights: [
+      'Конкурентный уровень оплаты труда и премии за результат',
+      'Официальное трудоустройство и стабильные выплаты',
+      'Работа на стратегически значимых промышленных объектах',
+      'Профессиональный рост в команде с сильной инженерной экспертизой',
+    ],
+  },
+}
+
+const siteSettingsPartialSchema = siteSettingsSchema.deepPartial()
+
 const loginSchema = z.object({
   username: z.string().min(1).max(120),
   password: z.string().min(1).max(300),
@@ -203,7 +233,33 @@ const readJsonArray = async (filePath, label) => {
   return data
 }
 
+const readJsonRecord = async (filePath, label) => {
+  const raw = await readFile(filePath, 'utf8')
+  const data = safeJsonParse(raw, label)
+
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    throw new Error(`${label} должен быть объектом`)
+  }
+
+  return data
+}
+
 const writeJsonArray = async (filePath, value) => {
+  const tempPath = `${filePath}.tmp-${Date.now()}-${Math.floor(Math.random() * 100000)}`
+  const payload = `${JSON.stringify(value, null, 2)}\n`
+  try {
+    await writeFile(tempPath, payload, 'utf8')
+    await rename(tempPath, filePath)
+  } catch (error) {
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'EROFS') {
+      throw new Error('READ_ONLY_STORAGE')
+    }
+
+    throw error
+  }
+}
+
+const writeJsonRecord = async (filePath, value) => {
   const tempPath = `${filePath}.tmp-${Date.now()}-${Math.floor(Math.random() * 100000)}`
   const payload = `${JSON.stringify(value, null, 2)}\n`
   try {
@@ -282,6 +338,111 @@ const writeCollection = async ({ filePath, storageKey }, value) => {
     }
 
     await kvClient.set(storageKey, value)
+  } catch {
+    throw new Error('KV_UNAVAILABLE')
+  }
+}
+
+const normalizeSiteSettings = (value) => {
+  const parsedPartial = siteSettingsPartialSchema.safeParse(value)
+
+  if (!parsedPartial.success) {
+    return defaultSiteSettings
+  }
+
+  const merged = {
+    careers: {
+      ...defaultSiteSettings.careers,
+      ...(parsedPartial.data.careers ?? {}),
+    },
+  }
+
+  const normalized = {
+    careers: {
+      ...merged.careers,
+      attractionTitle: normalizeSpace(merged.careers.attractionTitle),
+      attractionText: normalizeSpace(merged.careers.attractionText),
+      attractionHighlights: Array.isArray(merged.careers.attractionHighlights)
+        ? merged.careers.attractionHighlights
+          .map((item) => normalizeSpace(item))
+          .filter(Boolean)
+        : [],
+    },
+  }
+
+  const validated = siteSettingsSchema.safeParse(normalized)
+  if (!validated.success) {
+    return defaultSiteSettings
+  }
+
+  return validated.data
+}
+
+const readSiteSettings = async () => {
+  const readFromFile = async () => {
+    try {
+      const fileValue = await readJsonRecord(siteSettingsPath, 'siteSettings.json')
+      return normalizeSiteSettings(fileValue)
+    } catch (error) {
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT') {
+        return defaultSiteSettings
+      }
+
+      throw error
+    }
+  }
+
+  if (!hasKvStorage) {
+    return readFromFile()
+  }
+
+  try {
+    if (!kvClient) {
+      throw new Error('KV_UNAVAILABLE')
+    }
+
+    const payload = await kvClient.get(siteSettingsStorageKey)
+
+    if (payload === null) {
+      const initialData = await readFromFile()
+      await kvClient.set(siteSettingsStorageKey, initialData)
+      return initialData
+    }
+
+    if (typeof payload === 'string') {
+      const parsed = safeJsonParse(payload, 'site-settings')
+      return normalizeSiteSettings(parsed)
+    }
+
+    if (payload && typeof payload === 'object' && !Array.isArray(payload)) {
+      return normalizeSiteSettings(payload)
+    }
+
+    throw new Error('KV_INVALID_PAYLOAD')
+  } catch (error) {
+    if (error instanceof Error && error.message === 'KV_INVALID_PAYLOAD') {
+      throw error
+    }
+
+    throw new Error('KV_UNAVAILABLE')
+  }
+}
+
+const writeSiteSettings = async (value) => {
+  const normalized = normalizeSiteSettings(value)
+
+  if (!hasKvStorage) {
+    await writeJsonRecord(siteSettingsPath, normalized)
+    return normalized
+  }
+
+  try {
+    if (!kvClient) {
+      throw new Error('KV_UNAVAILABLE')
+    }
+
+    await kvClient.set(siteSettingsStorageKey, normalized)
+    return normalized
   } catch {
     throw new Error('KV_UNAVAILABLE')
   }
@@ -933,6 +1094,36 @@ app.get('/api/public/documents', async (_req, res) => {
     storageKey: 'sng:documents',
   })
   return res.json(list)
+})
+
+app.get('/api/public/site-settings', async (_req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
+  res.setHeader('Pragma', 'no-cache')
+  res.setHeader('Expires', '0')
+  const settings = await readSiteSettings()
+  return res.json(settings)
+})
+
+app.get('/api/admin/settings', authenticate, async (_req, res) => {
+  const settings = await readSiteSettings()
+  return res.json(settings)
+})
+
+app.put('/api/admin/settings', authenticate, async (req, res) => {
+  const parsed = siteSettingsSchema.safeParse(req.body)
+
+  if (!parsed.success) {
+    return res.status(400).json({ message: issueMessage(parsed.error) })
+  }
+
+  const saved = await writeSiteSettings(parsed.data)
+  auditLog({
+    action: 'update',
+    resource: 'settings',
+    id: 'site-settings',
+    actor: req.admin?.username ?? 'admin',
+  })
+  return res.json(saved)
 })
 
 const createCrudHandlers = ({

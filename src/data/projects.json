@@ -1664,44 +1664,5 @@
     ],
     "files": [],
     "relatedCompetencyIds": []
-  },
-  {
-    "id": "project-b0c17461",
-    "slug": "project-b0c17461",
-    "year": 2026,
-    "title": "Новый проект",
-    "shortTitle": "Новый проект",
-    "excerpt": "Краткое описание проекта.",
-    "heroImage": "/images/object-grs.png",
-    "gallery": [
-      "/images/object-grs.png"
-    ],
-    "region": "Республика Татарстан",
-    "objectType": "Газораспределительная станция",
-    "workTypes": [
-      "Шеф-монтаж"
-    ],
-    "passport": {
-      "period": "2026",
-      "status": "В работе",
-      "customer": "Заказчик",
-      "contractor": "ООО «СтройНефтеГаз»",
-      "inn": "0000000000",
-      "location": "РФ",
-      "objectType": "Промышленный объект",
-      "workScope": "Комплекс работ"
-    },
-    "tasks": [
-      "Описание задачи",
-      "ыв"
-    ],
-    "solutions": [
-      "Описание решения"
-    ],
-    "results": [
-      "Описание результата"
-    ],
-    "files": [],
-    "relatedCompetencyIds": []
   }
 ]

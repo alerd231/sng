@@ -8,6 +8,7 @@ import type {
   DocumentItem,
   Project,
   ProjectFile,
+  SiteSettings,
   Vacancy,
 } from '../../types/models'
 
@@ -52,6 +53,21 @@ const idPrefixByResource: Record<ResourceKey, string> = {
   projects: 'project',
   vacancies: 'vacancy',
   documents: 'doc',
+}
+
+const defaultSiteSettings: SiteSettings = {
+  careers: {
+    vacanciesEnabled: true,
+    attractionTitle: 'Присоединяйтесь к команде СтройНефтеГаз',
+    attractionText:
+      'Мы формируем кадровый резерв для будущих производственных запусков. Предлагаем конкурентный доход, прозрачные премиальные механики и долгосрочную занятость на инфраструктурных проектах.',
+    attractionHighlights: [
+      'Конкурентный уровень оплаты труда и премии за результат',
+      'Официальное трудоустройство и стабильные выплаты',
+      'Работа на стратегически значимых промышленных объектах',
+      'Профессиональный рост в команде с сильной инженерной экспертизой',
+    ],
+  },
 }
 
 const parseResponseMessage = async (response: Response) => {
@@ -223,6 +239,26 @@ const toStringArray = (value: unknown) => (
     ? value.filter((item): item is string => typeof item === 'string')
     : []
 )
+
+const normalizeSiteSettingsInput = (value: unknown): SiteSettings => {
+  if (!isRecord(value) || !isRecord(value.careers)) {
+    return defaultSiteSettings
+  }
+
+  const careers = value.careers
+  const attractionHighlights = compactStringArray(careers.attractionHighlights)
+
+  return {
+    careers: {
+      vacanciesEnabled: toBooleanValue(careers.vacanciesEnabled),
+      attractionTitle: toStringValue(careers.attractionTitle) || defaultSiteSettings.careers.attractionTitle,
+      attractionText: toStringValue(careers.attractionText) || defaultSiteSettings.careers.attractionText,
+      attractionHighlights: attractionHighlights.length
+        ? attractionHighlights
+        : defaultSiteSettings.careers.attractionHighlights,
+    },
+  }
+}
 
 const linesToArray = (value: string) => (
   (() => {
@@ -447,6 +483,11 @@ export const AdminDashboardPage = () => {
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null)
   const [selectedImagePreview, setSelectedImagePreview] = useState('')
   const [uploadedImageUrl, setUploadedImageUrl] = useState('')
+  const [siteSettings, setSiteSettings] = useState<SiteSettings>(defaultSiteSettings)
+  const [loadingSiteSettings, setLoadingSiteSettings] = useState(false)
+  const [savingSiteSettings, setSavingSiteSettings] = useState(false)
+  const [siteSettingsStatusMessage, setSiteSettingsStatusMessage] = useState('')
+  const [siteSettingsErrorMessage, setSiteSettingsErrorMessage] = useState('')
 
   const currentResourceMeta = useMemo(
     () => resources.find((item) => item.key === resource) ?? resources[0],
@@ -513,9 +554,35 @@ export const AdminDashboardPage = () => {
     }
   }, [authFetch])
 
+  const loadSiteSettings = useCallback(async () => {
+    setLoadingSiteSettings(true)
+    setSiteSettingsErrorMessage('')
+
+    try {
+      const response = await authFetch('/api/admin/settings')
+
+      if (!response.ok) {
+        throw new Error(await parseResponseMessage(response))
+      }
+
+      const payload = (await response.json()) as unknown
+      setSiteSettings(normalizeSiteSettingsInput(payload))
+    } catch (loadError) {
+      setSiteSettingsErrorMessage(
+        loadError instanceof Error ? loadError.message : 'Не удалось загрузить настройки страницы вакансий',
+      )
+    } finally {
+      setLoadingSiteSettings(false)
+    }
+  }, [authFetch])
+
   useEffect(() => {
     void loadResource(resource)
   }, [loadResource, resource])
+
+  useEffect(() => {
+    void loadSiteSettings()
+  }, [loadSiteSettings])
 
   useEffect(() => {
     setSearch('')
@@ -853,6 +920,67 @@ export const AdminDashboardPage = () => {
       setErrorMessage('')
     } catch {
       setErrorMessage('Не удалось скопировать URL. Скопируйте вручную из поля ниже.')
+    }
+  }
+
+  const updateCareersSettings = (
+    updater: (draft: SiteSettings['careers']) => SiteSettings['careers'],
+  ) => {
+    setSiteSettings((current) => ({
+      careers: updater(current.careers),
+    }))
+  }
+
+  const handleSaveSiteSettings = async () => {
+    const title = siteSettings.careers.attractionTitle.trim()
+    const text = siteSettings.careers.attractionText.trim()
+    const highlights = compactStringArray(siteSettings.careers.attractionHighlights)
+
+    if (!title || !text || !highlights.length) {
+      setSiteSettingsErrorMessage(
+        'Заполните заголовок, текст и хотя бы один пункт преимуществ для страницы вакансий.',
+      )
+      setSiteSettingsStatusMessage('')
+      return
+    }
+
+    const payload: SiteSettings = {
+      careers: {
+        vacanciesEnabled: siteSettings.careers.vacanciesEnabled,
+        attractionTitle: title,
+        attractionText: text,
+        attractionHighlights: highlights,
+      },
+    }
+
+    setSavingSiteSettings(true)
+    setSiteSettingsStatusMessage('')
+    setSiteSettingsErrorMessage('')
+
+    try {
+      const response = await authFetch('/api/admin/settings', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      })
+
+      if (!response.ok) {
+        throw new Error(await parseResponseMessage(response))
+      }
+
+      const saved = normalizeSiteSettingsInput(await response.json())
+      setSiteSettings(saved)
+      setSiteSettingsStatusMessage('Режим страницы вакансий сохранен')
+      setSiteSettingsErrorMessage('')
+    } catch (saveError) {
+      setSiteSettingsErrorMessage(
+        saveError instanceof Error ? saveError.message : 'Не удалось сохранить настройки страницы вакансий',
+      )
+      setSiteSettingsStatusMessage('')
+    } finally {
+      setSavingSiteSettings(false)
     }
   }
 
@@ -1456,6 +1584,108 @@ export const AdminDashboardPage = () => {
               </button>
             ))}
           </div>
+
+          <section className="border border-white/15 bg-black/25 p-4 sm:p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="caption text-white/55">Режим страницы "Вакансии"</p>
+                <p className="mt-1 text-sm text-white/70">
+                  {siteSettings.careers.vacanciesEnabled
+                    ? 'Режим включен: отображается список вакансий.'
+                    : 'Режим выключен: отображается текст для привлечения кандидатов.'}
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    updateCareersSettings((careers) => ({
+                      ...careers,
+                      vacanciesEnabled: !careers.vacanciesEnabled,
+                    }))
+                    setSiteSettingsStatusMessage('')
+                    setSiteSettingsErrorMessage('')
+                  }}
+                  className={`border px-3 py-2 text-[0.62rem] uppercase tracking-[0.16em] transition ${
+                    siteSettings.careers.vacanciesEnabled
+                      ? 'border-emerald-400/50 bg-emerald-500/10 text-emerald-200'
+                      : 'border-amber-300/50 bg-amber-500/10 text-amber-200'
+                  }`}
+                >
+                  {siteSettings.careers.vacanciesEnabled ? 'Вакансии включены' : 'Вакансии выключены'}
+                </button>
+
+                <Button
+                  type="button"
+                  dark
+                  onClick={handleSaveSiteSettings}
+                  disabled={savingSiteSettings || loadingSiteSettings}
+                >
+                  {savingSiteSettings ? 'Сохранение...' : 'Сохранить режим'}
+                </Button>
+              </div>
+            </div>
+
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              <label className={fieldLabelClassName}>
+                <span className="text-xs text-white/60">Заголовок текста привлечения</span>
+                <input
+                  value={siteSettings.careers.attractionTitle}
+                  onChange={(event) => {
+                    const value = event.currentTarget.value
+                    updateCareersSettings((careers) => ({
+                      ...careers,
+                      attractionTitle: value,
+                    }))
+                    setSiteSettingsStatusMessage('')
+                    setSiteSettingsErrorMessage('')
+                  }}
+                  className={inputClassName}
+                />
+              </label>
+
+              <label className={fieldLabelClassName}>
+                <span className="text-xs text-white/60">Преимущества (строка = пункт)</span>
+                <textarea
+                  value={arrayToLines(siteSettings.careers.attractionHighlights)}
+                  onChange={(event) => {
+                    updateCareersSettings((careers) => ({
+                      ...careers,
+                      attractionHighlights: linesToArray(event.currentTarget.value),
+                    }))
+                    setSiteSettingsStatusMessage('')
+                    setSiteSettingsErrorMessage('')
+                  }}
+                  className={textareaClassName}
+                />
+              </label>
+
+              <label className={`${fieldLabelClassName} md:col-span-2`}>
+                <span className="text-xs text-white/60">Текст привлечения</span>
+                <textarea
+                  value={siteSettings.careers.attractionText}
+                  onChange={(event) => {
+                    const value = event.currentTarget.value
+                    updateCareersSettings((careers) => ({
+                      ...careers,
+                      attractionText: value,
+                    }))
+                    setSiteSettingsStatusMessage('')
+                    setSiteSettingsErrorMessage('')
+                  }}
+                  className={textareaClassName}
+                />
+              </label>
+            </div>
+
+            {siteSettingsStatusMessage ? (
+              <p className="mt-3 text-sm text-emerald-300">{siteSettingsStatusMessage}</p>
+            ) : null}
+            {siteSettingsErrorMessage ? (
+              <p className="mt-3 text-sm text-rose-300">{siteSettingsErrorMessage}</p>
+            ) : null}
+          </section>
 
           <div className="grid gap-4 lg:grid-cols-[380px_1fr]">
             <aside className="border border-white/15 bg-black/25 p-4">
